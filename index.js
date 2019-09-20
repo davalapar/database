@@ -49,18 +49,6 @@ const isValidInteger = (value) => {
   return true;
 };
 
-
-/**
- * Query spec:
- * - should be a functional approach
- * - must not recreate new function instances
- * - instead we just replace the array we are using internally
- * const results = Query
- *  .using(table)
- *  .ascend('property')
- *  .results();
- */
-
 let internalQueryDataList;
 let internalQueryItemPropertyDictionary;
 let internalQueryItemPropertyTypeDictionary;
@@ -69,6 +57,7 @@ let internalQueryLimit = Infinity;
 let internalQueryOffset = 0;
 let internalQueryPage = 0;
 let internalQuerySorts = [];
+
 const Query = {
 
   // SORTS
@@ -296,12 +285,12 @@ const Query = {
     }
 
     // hydrate and return
-    const hydratedItems = internalQueryDataList.map((existingItem) => {
-      const temporaryItem = {};
+    const hydratedItems = internalQueryDataList.map((existingItemRecord) => {
+      const tempItemRecord = {};
       for (let i = 0, l = internalQueryPropertyList.length; i < l; i += 1) {
-        temporaryItem[internalQueryPropertyList[i]] = existingItem[i];
+        tempItemRecord[internalQueryPropertyList[i]] = existingItemRecord[i];
       }
-      return temporaryItem;
+      return tempItemRecord;
     });
     return hydratedItems;
   },
@@ -310,74 +299,50 @@ const Query = {
 const encode = (decoded) => zlib.gzipSync(JSON.stringify(decoded));
 const decode = (encoded) => JSON.parse(zlib.gunzipSync(encoded));
 
-function Table(label, itemSchema, initialSaveTimeout, forcedSaveTimeout) {
+function Table(options) {
+  if (isValidObject(options) === false) {
+    throw Error('new Table :: 1st parameter "options" must be a plain object.');
+  }
+  const {
+    label,
+    itemSchema,
+    initialSaveTimeout,
+    forcedSaveTimeout,
+    transformFunction,
+  } = options;
   // PARAMETER TYPE CHECKS
   if (isValidNonEmptyString(label) === false) {
-    throw Error('new Table:: 1st parameter "label" must be a non-empty string.');
+    throw Error('new Table :: "options.label" must be a non-empty string.');
   }
   if (isValidObject(itemSchema) === false) {
-    throw Error('new Table:: 2nd parameter "itemSchema" must be a plain object.');
+    throw Error('new Table :: "options.itemSchema" must be a plain object.');
   }
   if (itemSchema.id !== undefined) {
-    throw Error('new Table:: "id" property in 2nd parameter "itemSchema" must be undefined.');
+    throw Error('new Table :: "id" property in "options.itemSchema" must be undefined.');
   }
   if (initialSaveTimeout !== undefined && isValidInteger(initialSaveTimeout) === false) {
-    throw Error('new Table:: 3rd parameter "initialSaveTimeout" must be an integer.');
+    throw Error('new Table :: "options.initialSaveTimeout" must be an integer.');
   }
   if (forcedSaveTimeout !== undefined && isValidInteger(forcedSaveTimeout) === false) {
-    throw Error('new Table:: 3rd parameter "forcedSaveTimeout" must be an integer.');
+    throw Error('new Table :: "options.forcedSaveTimeout" must be an integer.');
+  }
+  if (transformFunction !== undefined && typeof transformFunction !== 'function') {
+    throw Error('new Table :: "options.transformFunction" must be a function.');
   }
 
   // INTERNAL VARIABLES
   const internalOldPath = `./tables/${label}-old.db`;
   const internalTempPath = `./tables/${label}-temp.db`;
   const internalMainPath = `./tables/${label}-main.db`;
+  const internalInitialSaveTimeout = initialSaveTimeout || 5000;
+  const internalForcedSaveTimeout = forcedSaveTimeout || 300000;
   let internalDataList = [];
   let internalDataDictionary = {};
-
-  // FILE LOADING & INITIALIZATION
-  if (fs.existsSync('./tables') === false) {
-    fs.mkdirSync('./tables', { recursive: true });
-    console.log('Table: "./tables" directory created.');
-  }
-  if (fs.existsSync(internalMainPath) === true) {
-    try {
-      const encoded = fs.readFileSync(internalMainPath);
-      const decoded = decode(encoded);
-      if (Array.isArray(decoded) === false) {
-        throw Error('Unexpected non-array parsed data.');
-      }
-      internalDataList = new Array(decoded.length);
-      for (let i = 0, l = decoded.length; i < l; i += 1) {
-        const item = decoded[i];
-        try {
-          // validate
-          // add to list and dictionary
-          internalDataList[i] = item;
-          internalDataDictionary[item[0]] = item;
-        } catch (e) {
-          // transform
-          // validate again
-          // add to list and dictionary
-        }
-      }
-      console.log(`Table: Loaded ${internalDataList.length} items.`);
-    } catch (e) {
-      throw Error(`Table: Load error, ${e.message}`);
-    }
-  } else {
-    fs.writeFileSync(internalMainPath, encode(internalDataList));
-    console.log(`Table: File created at "${internalMainPath}".`);
-  }
-
-  // MORE INTERNAL VARIABLES
   const internalItemPropertyList = ['id', ...Object.keys(itemSchema).sort((a, b) => a.localeCompare(b))];
-  console.log(internalItemPropertyList);
+  const internalItemPropertyListStringified = JSON.stringify(internalItemPropertyList);
   const internalItemPropertyDictionary = { id: 0 };
   const internalItemPropertyTypeList = ['string'];
   const internalItemPropertyTypeDictionary = { id: 'string' };
-  const internalInitialSaveTimeout = initialSaveTimeout || 5000;
-  const internalForcedSaveTimeout = forcedSaveTimeout || 300000;
   for (let i = 0, l = internalItemPropertyList.length; i < l; i += 1) {
     const itemProperty = internalItemPropertyList[i];
     if (itemProperty === 'id') {
@@ -385,11 +350,162 @@ function Table(label, itemSchema, initialSaveTimeout, forcedSaveTimeout) {
     }
     const itemPropertyType = itemSchema[itemProperty];
     if (acceptedItemPropertyTypes.includes(itemPropertyType) === false) {
-      throw Error(`new Table:: Unexpected "${itemPropertyType}" type for "${itemProperty}" property, expecting "${acceptedItemPropertyTypes.join(', ')}"`);
+      throw Error(`new Table :: Unexpected "${itemPropertyType}" type for "${itemProperty}" property, expecting "${acceptedItemPropertyTypes.join(', ')}"`);
     }
     internalItemPropertyDictionary[itemProperty] = i;
     internalItemPropertyTypeList[i] = itemPropertyType;
     internalItemPropertyTypeDictionary[itemProperty] = itemPropertyType;
+  }
+
+  const itemRecordFromSource = (itemSource, externalMethod) => {
+    if (isValidNonEmptyString(externalMethod) === false) {
+      throw Error('internal :: "externalMethod" must be a non-empty string.');
+    }
+    if (isValidObject(itemSource) === false) {
+      throw Error(`${externalMethod} :: "itemSource" must be a plain object.`);
+    }
+    const itemSourceKeys = Object.keys(itemSource);
+    const itemRecord = new Array(internalItemPropertyList.length);
+    for (let i = 0, l = internalItemPropertyList.length; i < l; i += 1) {
+      const itemProperty = internalItemPropertyList[i];
+      const itemPropertyType = internalItemPropertyTypeList[i];
+      const itemSourcePropertyValue = itemSource[itemProperty];
+      switch (itemPropertyType) {
+        case 'number': {
+          if (itemSourcePropertyValue === undefined) {
+            if (externalMethod === 'load') {
+              throw Error(`${externalMethod} :: expecting non-undefined "${itemProperty}" property`);
+            }
+            itemRecord[i] = 0;
+            break;
+          }
+          if (isValidNumber(itemSourcePropertyValue) === false) {
+            throw Error(`${externalMethod} :: expecting number for "${itemProperty}" property`);
+          }
+          break;
+        }
+        case 'string': {
+          if (itemSourcePropertyValue === undefined) {
+            if (itemProperty === 'id') {
+              throw Error(`${externalMethod} :: expecting non-undefined "id" property`);
+            }
+            if (externalMethod === 'load') {
+              throw Error(`${externalMethod} :: expecting non-undefined value for "${itemProperty}" property`);
+            }
+            itemRecord[i] = '';
+            break;
+          }
+          if (typeof itemSourcePropertyValue !== 'string') {
+            throw Error(`${externalMethod} :: expecting string-type value for "${itemProperty}" property`);
+          }
+          if (itemProperty === 'id') {
+            if (itemSourcePropertyValue === '') {
+              throw Error(`${externalMethod} :: expecting non-empty "id" property`);
+            }
+            if (externalMethod === 'add') {
+              if (internalDataDictionary[itemSourcePropertyValue] !== undefined) {
+                throw Error(`${externalMethod} :: expecting "id" property to NOT match existing items`);
+              }
+            } else if (externalMethod === 'update') {
+              if (internalDataDictionary[itemSourcePropertyValue] === undefined) {
+                throw Error(`${externalMethod} :: expecting "id" property to match existing items`);
+              }
+            }
+          }
+          break;
+        }
+        case 'boolean': {
+          if (itemSourcePropertyValue === undefined) {
+            if (externalMethod === 'load') {
+              throw Error(`${externalMethod} :: expecting non-undefined "${itemProperty}" property`);
+            }
+            itemRecord[i] = false;
+            break;
+          }
+          if (typeof itemSourcePropertyValue !== 'boolean') {
+            throw Error(`${externalMethod} :: expecting boolean-type value for "${itemProperty}" property`);
+          }
+          break;
+        }
+        default: {
+          throw Error(`${externalMethod} :: internal error, unexpected "${itemPropertyType}" type.`);
+        }
+      }
+      if (itemSourcePropertyValue !== undefined) {
+        itemRecord[i] = itemSourcePropertyValue;
+        itemSourceKeys.splice(itemSourceKeys.indexOf(itemProperty), 1);
+      }
+    }
+    for (let i = 0, l = itemSourceKeys.length; i < l; i += 1) {
+      const itemProperty = itemSourceKeys[i];
+      if (itemSource[itemProperty] === undefined) {
+        itemSourceKeys.splice(itemSourceKeys.indexOf(itemProperty), 1);
+      }
+    }
+    if (itemSourceKeys.length > 0) {
+      throw Error(`${externalMethod} :: unexpected properties "${itemSourceKeys.join(', ')}"`);
+    }
+    return itemRecord;
+  };
+
+  const hydrateItemFromRecord = (itemRecord) => {
+    const hydratedItem = {};
+    for (let i = 0, l = internalItemPropertyList.length; i < l; i += 1) {
+      hydratedItem[internalItemPropertyList[i]] = itemRecord[i];
+    }
+    return hydratedItem;
+  };
+
+  // FILE LOADING & INITIALIZATION
+  if (fs.existsSync('./tables') === false) {
+    fs.mkdirSync('./tables', { recursive: true });
+    console.log('Table: "./tables" directory created.');
+  }
+  if (fs.existsSync(internalMainPath) === true) {
+    const encoded = fs.readFileSync(internalMainPath);
+    const decoded = decode(encoded);
+    if (Array.isArray(decoded) === false) {
+      throw Error('load :: unexpected non-array "decoded" data.');
+    }
+    const [loadedItemPropertyListStringified, loadedItemRecords] = decoded;
+    if (typeof loadedItemPropertyListStringified !== 'string') {
+      throw Error('load :: unexpected non-string "loadedItemPropertyListStringified" data.');
+    }
+    if (Array.isArray(loadedItemRecords) === false) {
+      throw Error('load :: unexpected non-array "loadedItemRecords" data.');
+    }
+    internalDataList = new Array(loadedItemRecords.length);
+    if (loadedItemPropertyListStringified === internalItemPropertyListStringified) {
+      internalDataList = loadedItemRecords;
+      for (let i = 0, l = loadedItemRecords.length; i < l; i += 1) {
+        const itemRecord = loadedItemRecords[i];
+        internalDataDictionary[itemRecord[0]] = itemRecord;
+      }
+    } else {
+      const loadedSchemaItemPropertyList = JSON.parse(loadedItemPropertyListStringified);
+      for (let i = 0, l = loadedItemRecords.length; i < l; i += 1) {
+        const itemRecord = loadedItemRecords[i];
+        if (transformFunction === undefined) {
+          throw Error('load :: "options.transformFunction" is now required and must be a function.');
+        }
+        const staleHydratedItem = loadedSchemaItemPropertyList.reduce((previous, current, index) => ({ ...previous, [current]: itemRecord[index] }), {});
+        const transformedItemRecord = itemRecordFromSource(transformFunction(staleHydratedItem), 'load');
+        for (let x = 0, y = internalItemPropertyList.length; x < y; x += 1) {
+          const itemRecordType = typeof transformedItemRecord[x];
+          const itemProperty = internalItemPropertyList[x];
+          const itemPropertyType = internalItemPropertyTypeDictionary[itemProperty];
+          if (itemRecordType !== itemPropertyType) {
+            throw Error(`load :: unexpected "${typeof transformedItemRecord[x]}" for "${itemProperty}" property, expecting "${itemPropertyType}"`);
+          }
+        }
+        internalDataList[i] = transformedItemRecord;
+        internalDataDictionary[transformedItemRecord[0]] = transformedItemRecord;
+      }
+    }
+    console.log(`Table: Loaded ${internalDataList.length} items.`);
+  } else {
+    fs.writeFileSync(internalMainPath, encode([internalItemPropertyListStringified, internalDataList]));
+    console.log(`Table: File created at "${internalMainPath}".`);
   }
 
   // TIMEOUT-BASED SAVING
@@ -407,7 +523,7 @@ function Table(label, itemSchema, initialSaveTimeout, forcedSaveTimeout) {
         clearTimeout(internalCurrentForceSaveTimeout);
         internalCurrentForceSaveTimeout = undefined;
       }
-      const encoded = encode(internalDataList);
+      const encoded = encode([internalItemPropertyListStringified, internalDataList]);
       fs.writeFileSync(internalTempPath, encoded);
       fs.renameSync(internalMainPath, internalOldPath);
       fs.writeFileSync(internalMainPath, encoded);
@@ -436,7 +552,7 @@ function Table(label, itemSchema, initialSaveTimeout, forcedSaveTimeout) {
         clearTimeout(internalCurrentInitialSaveTimeout);
         internalCurrentInitialSaveTimeout = undefined;
         // console.log('initial: destroyed');
-        const encoded = encode(internalDataList);
+        const encoded = encode([internalItemPropertyListStringified, internalDataList]);
         fs.writeFileSync(internalTempPath, encoded);
         fs.renameSync(internalMainPath, internalOldPath);
         fs.writeFileSync(internalMainPath, encoded);
@@ -449,7 +565,7 @@ function Table(label, itemSchema, initialSaveTimeout, forcedSaveTimeout) {
       clearTimeout(internalCurrentForceSaveTimeout);
       internalCurrentForceSaveTimeout = undefined;
       // console.log('forced: destroyed');
-      const encoded = encode(internalDataList);
+      const encoded = encode([internalItemPropertyListStringified, internalDataList]);
       fs.writeFileSync(internalTempPath, encoded);
       fs.renameSync(internalMainPath, internalOldPath);
       fs.writeFileSync(internalMainPath, encoded);
@@ -486,135 +602,17 @@ function Table(label, itemSchema, initialSaveTimeout, forcedSaveTimeout) {
     return this;
   };
   this.add = (itemSource) => {
-    const itemSourceKeys = Object.keys(itemSource);
-    const itemRecord = new Array(internalItemPropertyList.length);
-    for (let i = 0, l = internalItemPropertyList.length; i < l; i += 1) {
-      const itemProperty = internalItemPropertyList[i];
-      const itemPropertyType = internalItemPropertyTypeList[i];
-      const itemSourcePropertyValue = itemSource[itemProperty];
-      switch (itemPropertyType) {
-        case 'number': {
-          if (itemSourcePropertyValue === undefined) {
-            itemRecord[i] = 0;
-            break;
-          }
-          if (isValidNumber(itemSourcePropertyValue) === false) {
-            throw Error(`add :: expecting number for "${itemProperty}" property`);
-          }
-          break;
-        }
-        case 'string': {
-          if (itemSourcePropertyValue === undefined) {
-            if (itemProperty === 'id') {
-              throw Error('add :: expecting non-undefined "id" property');
-            }
-            itemRecord[i] = '';
-            break;
-          }
-          if (typeof itemSourcePropertyValue !== 'string') {
-            throw Error(`add :: expecting string for "${itemProperty}" property`);
-          }
-          if (itemProperty === 'id') {
-            if (itemSourcePropertyValue === '') {
-              throw Error('add :: expecting non-empty "id" property');
-            }
-            if (internalDataDictionary[itemSourcePropertyValue] !== undefined) {
-              throw Error('add :: expecting non-existing "id" property');
-            }
-          }
-          break;
-        }
-        case 'boolean': {
-          if (itemSourcePropertyValue === undefined) {
-            itemRecord[i] = false;
-            break;
-          }
-          if (typeof itemSourcePropertyValue !== 'boolean') {
-            throw Error(`add :: expecting boolean for "${itemProperty}" property`);
-          }
-          break;
-        }
-        default: {
-          throw Error(`add :: internal error, unexpected "${itemPropertyType}" type.`);
-        }
-      }
-      if (itemSourcePropertyValue !== undefined) {
-        itemRecord[i] = itemSourcePropertyValue;
-        itemSourceKeys.splice(itemSourceKeys.indexOf(itemProperty), 1);
-      }
-    }
-    if (itemSourceKeys.length > 0) {
-      throw Error(`add :: unexpected "${itemSourceKeys.join(', ')}" properties`);
-    }
+    const itemRecord = itemRecordFromSource(itemSource, 'add');
     internalDataList.push(itemRecord);
     internalDataDictionary[itemRecord[0]] = itemRecord;
     internalInitSaveTimeout();
     return this;
   };
   this.update = (itemSource) => {
-    const itemSourceKeys = Object.keys(itemSource);
-    const itemRecord = new Array(internalItemPropertyList.length);
-    for (let i = 0, l = internalItemPropertyList.length; i < l; i += 1) {
-      const itemProperty = internalItemPropertyList[i];
-      const itemPropertyType = internalItemPropertyTypeList[i];
-      const itemSourcePropertyValue = itemSource[itemProperty];
-      switch (itemPropertyType) {
-        case 'number': {
-          if (itemSourcePropertyValue === undefined) {
-            itemRecord[i] = 0;
-            break;
-          }
-          if (isValidNumber(itemSourcePropertyValue) === false) {
-            throw Error(`update :: expecting number for "${itemProperty}" property`);
-          }
-          break;
-        }
-        case 'string': {
-          if (itemSourcePropertyValue === undefined) {
-            if (itemProperty === 'id') {
-              throw Error('update :: expecting non-undefined "id" property');
-            }
-            itemRecord[i] = '';
-            break;
-          }
-          if (typeof itemSourcePropertyValue !== 'string') {
-            throw Error(`update :: expecting string for "${itemProperty}" property`);
-          }
-          if (itemProperty === 'id') {
-            if (itemSourcePropertyValue === '') {
-              throw Error('update :: expecting non-empty "id" property');
-            }
-            if (internalDataDictionary[itemSourcePropertyValue] === undefined) {
-              throw Error('update :: expecting "id" property to match existing items');
-            }
-          }
-          break;
-        }
-        case 'boolean': {
-          if (itemSourcePropertyValue === undefined) {
-            itemRecord[i] = false;
-            break;
-          }
-          if (typeof itemSourcePropertyValue !== 'boolean') {
-            throw Error(`add :: expecting boolean for "${itemProperty}" property`);
-          }
-          break;
-        }
-        default: {
-          throw Error(`add :: internal error, unexpected "${itemPropertyType}" type.`);
-        }
-      }
-      if (itemSourcePropertyValue !== undefined) {
-        itemRecord[i] = itemSourcePropertyValue;
-        itemSourceKeys.splice(itemSourceKeys.indexOf(itemProperty), 1);
-      }
-    }
-    if (itemSourceKeys.length > 0) {
-      throw Error(`add :: unexpected "${itemSourceKeys.join(', ')}" properties`);
-    }
+    const itemRecord = itemRecordFromSource(itemSource, 'update');
     const itemId = itemRecord[0];
-    const existingItem = internalDataDictionary[itemId];
-    internalDataList[internalDataList.indexOf(existingItem)] = itemRecord;
+    const existingItemRecord = internalDataDictionary[itemId];
+    internalDataList[internalDataList.indexOf(existingItemRecord)] = itemRecord;
     internalDataDictionary[itemId] = itemRecord;
     internalInitSaveTimeout();
     return this;
@@ -623,68 +621,64 @@ function Table(label, itemSchema, initialSaveTimeout, forcedSaveTimeout) {
     if (isValidNonEmptyString(itemId) === false) {
       throw Error('get :: 1st parameter "itemId" must be a non-empty string.');
     }
-    const existingItem = internalDataDictionary[itemId];
-    if (existingItem === undefined) {
+    const existingItemRecord = internalDataDictionary[itemId];
+    if (existingItemRecord === undefined) {
       throw Error(`get :: "${itemId}" itemId not found.`);
     }
-    const temporaryItem = {};
-    for (let i = 0, l = internalItemPropertyList.length; i < l; i += 1) {
-      temporaryItem[internalItemPropertyList[i]] = existingItem[i];
-    }
-    return temporaryItem;
+    return hydrateItemFromRecord(existingItemRecord);
   };
   this.delete = (itemId) => {
     if (isValidNonEmptyString(itemId) === false) {
       throw Error('delete :: 1st parameter "itemId" must be a non-empty string.');
     }
-    const existingItem = internalDataDictionary[itemId];
-    if (existingItem === undefined) {
+    const existingItemRecord = internalDataDictionary[itemId];
+    if (existingItemRecord === undefined) {
       throw Error(`delete :: "${itemId}" itemId not found.`);
     }
-    internalDataList.splice(internalDataList.indexOf(existingItem), 1);
+    internalDataList.splice(internalDataList.indexOf(existingItemRecord), 1);
     delete internalDataDictionary[itemId];
     internalInitSaveTimeout();
     return this;
   };
   this.increment = (itemId, itemProperty) => {
     if (isValidNonEmptyString(itemId) === false) {
-      throw Error('incrementItemProperty :: 1st parameter "itemId" must be a non-empty string.');
+      throw Error('increment :: 1st parameter "itemId" must be a non-empty string.');
     }
     if (isValidNonEmptyString(itemProperty) === false) {
-      throw Error('incrementItemProperty :: 2nd parameter "itemProperty" must be a non-empty string.');
+      throw Error('increment :: 2nd parameter "itemProperty" must be a non-empty string.');
     }
     if (internalItemPropertyList.includes(itemProperty) === false) {
-      throw Error(`incrementItemProperty :: unexpected "${itemProperty}", expecting "${internalItemPropertyList.join(', ')}"`);
+      throw Error(`increment :: unexpected "${itemProperty}", expecting "${internalItemPropertyList.join(', ')}"`);
     }
     if (internalItemPropertyTypeDictionary[itemProperty] !== 'number') {
-      throw Error(`incrementItemProperty :: unexpected "${itemProperty}", expecting property with "number" type, not "${internalItemPropertyTypeDictionary[itemProperty]}"`);
+      throw Error(`increment :: unexpected "${itemProperty}", expecting property with "number" type, not "${internalItemPropertyTypeDictionary[itemProperty]}"`);
     }
-    const existingItem = internalDataDictionary[itemId];
-    if (existingItem === undefined) {
-      throw Error(`incrementItemProperty :: "${itemId}" itemId not found.`);
+    const existingItemRecord = internalDataDictionary[itemId];
+    if (existingItemRecord === undefined) {
+      throw Error(`increment :: "${itemId}" itemId not found.`);
     }
-    existingItem[internalItemPropertyDictionary[itemProperty]] += 1;
+    existingItemRecord[internalItemPropertyDictionary[itemProperty]] += 1;
     internalInitSaveTimeout();
     return this;
   };
   this.decrement = (itemId, itemProperty) => {
     if (isValidNonEmptyString(itemId) === false) {
-      throw Error('incrementItemProperty :: 1st parameter "itemId" must be a non-empty string.');
+      throw Error('decrement :: 1st parameter "itemId" must be a non-empty string.');
     }
     if (isValidNonEmptyString(itemProperty) === false) {
-      throw Error('incrementItemProperty :: 2nd parameter "itemProperty" must be a non-empty string.');
+      throw Error('decrement :: 2nd parameter "itemProperty" must be a non-empty string.');
     }
     if (internalItemPropertyList.includes(itemProperty) === false) {
-      throw Error(`incrementItemProperty :: unexpected "${itemProperty}", expecting "${internalItemPropertyList.join(', ')}"`);
+      throw Error(`decrement :: unexpected "${itemProperty}", expecting "${internalItemPropertyList.join(', ')}"`);
     }
     if (internalItemPropertyTypeDictionary[itemProperty] !== 'number') {
-      throw Error(`incrementItemProperty :: unexpected "${itemProperty}", expecting property with "number" type, not "${internalItemPropertyTypeDictionary[itemProperty]}"`);
+      throw Error(`decrement :: unexpected "${itemProperty}", expecting property with "number" type, not "${internalItemPropertyTypeDictionary[itemProperty]}"`);
     }
-    const existingItem = internalDataDictionary[itemId];
-    if (existingItem === undefined) {
-      throw Error(`incrementItemProperty :: "${itemId}" itemId not found.`);
+    const existingItemRecord = internalDataDictionary[itemId];
+    if (existingItemRecord === undefined) {
+      throw Error(`decrement :: "${itemId}" itemId not found.`);
     }
-    existingItem[internalItemPropertyDictionary[itemProperty]] -= 1;
+    existingItemRecord[internalItemPropertyDictionary[itemProperty]] -= 1;
     internalInitSaveTimeout();
     return this;
   };
@@ -696,25 +690,4 @@ function Table(label, itemSchema, initialSaveTimeout, forcedSaveTimeout) {
   };
 }
 
-
-/**
- * - add, increment, decrement, has, delete, get, query
- * - Consistent base types: string, number, boolean
- * - Automatic defaults, string: '', number: 0, boolean: false
- * - Queries are designed to be used synchronously
- * - Queries provide strong consistency
- */
-
-const table = new Table('yeh', { name: 'string', age: 'number' }, 500);
-table.clear();
-
-for (let i = 0, l = 1000; i < l; i += 1) {
-  table.add({ id: table.id(), age: i });
-}
-const results = table
-  .query()
-  .ascend('age')
-  .gte('age', 100)
-  .limit(1)
-  .results();
-console.log(results);
+module.exports = { Table };
