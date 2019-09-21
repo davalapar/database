@@ -1,7 +1,7 @@
 {
   "name": "@davalapar/database",
   "version": "0.0.1",
-  "description": "Fast, performant JSON database.",
+  "description": "Fast, performant, persistent database.",
   "main": "index.js",
   "repository": "git@github.com:davalapar/database.git",
   "author": "davalapar <davalapar@gmail.com>",

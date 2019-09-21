@@ -61,50 +61,50 @@ let internalQuerySorts = [];
 const Query = {
 
   // SORTS
-  ascend: (property) => {
-    if (isValidNonEmptyString(property) === false) {
-      throw Error('ascend :: 1st parameter "property" must be a non-empty string');
+  ascend: (itemProperty) => {
+    if (isValidNonEmptyString(itemProperty) === false) {
+      throw Error('ascend :: 1st parameter "itemProperty" must be a non-empty string');
     }
-    if (internalQueryPropertyList.includes(property) === false) {
-      throw Error(`ascend :: unexpected property "${property}", expecting "${internalQueryPropertyList.join(', ')}"`);
+    if (internalQueryPropertyList.includes(itemProperty) === false) {
+      throw Error(`ascend :: unexpected property "${itemProperty}", expecting "${internalQueryPropertyList.join(', ')}"`);
     }
-    if (internalQueryItemPropertyTypeDictionary[property] !== 'number' && internalQueryItemPropertyTypeDictionary[property] !== 'string') {
-      throw Error(`ascend :: unexpected "${property}", expecting property with "number, string" type, not "${internalQueryItemPropertyTypeDictionary[property]}""`);
+    if (internalQueryItemPropertyTypeDictionary[itemProperty] !== 'number' && internalQueryItemPropertyTypeDictionary[itemProperty] !== 'string') {
+      throw Error(`ascend :: unexpected "${itemProperty}", expecting property with "number, string" type, not "${internalQueryItemPropertyTypeDictionary[itemProperty]}""`);
     }
-    internalQuerySorts.push([property, false]);
+    internalQuerySorts.push([itemProperty, false]);
     return Query;
   },
-  descend: (property) => {
-    if (isValidNonEmptyString(property) === false) {
-      throw Error('descend :: 1st parameter "property" must be a non-empty string');
+  descend: (itemProperty) => {
+    if (isValidNonEmptyString(itemProperty) === false) {
+      throw Error('descend :: 1st parameter "itemProperty" must be a non-empty string');
     }
-    if (internalQueryPropertyList.includes(property) === false) {
-      throw Error(`descend :: unexpected property "${property}", expecting "${internalQueryPropertyList.join(', ')}"`);
+    if (internalQueryPropertyList.includes(itemProperty) === false) {
+      throw Error(`descend :: unexpected property "${itemProperty}", expecting "${internalQueryPropertyList.join(', ')}"`);
     }
-    if (internalQueryItemPropertyTypeDictionary[property] !== 'number' && internalQueryItemPropertyTypeDictionary[property] !== 'string') {
-      throw Error(`descend :: unexpected "${property}", expecting property with "number, string" type, not "${internalQueryItemPropertyTypeDictionary[property]}""`);
+    if (internalQueryItemPropertyTypeDictionary[itemProperty] !== 'number' && internalQueryItemPropertyTypeDictionary[itemProperty] !== 'string') {
+      throw Error(`descend :: unexpected "${itemProperty}", expecting property with "number, string" type, not "${internalQueryItemPropertyTypeDictionary[itemProperty]}""`);
     }
-    internalQuerySorts.push([property, true]);
+    internalQuerySorts.push([itemProperty, true]);
     return Query;
   },
 
   // FILTERS
-  gt: (property, value) => {
-    if (isValidNonEmptyString(property) === false) {
-      throw Error('gt :: 1st parameter "property" must be a non-empty string');
+  gt: (itemProperty, value) => {
+    if (isValidNonEmptyString(itemProperty) === false) {
+      throw Error('gt :: 1st parameter "itemProperty" must be a non-empty string');
     }
     if (isValidNumber(value) === false) {
       throw Error('gt :: 2nd parameter "value" must be a valid number');
     }
-    if (internalQueryPropertyList.includes(property) === false) {
-      throw Error(`gt :: unexpected property "${property}", expecting "${internalQueryPropertyList.join(', ')}"`);
+    if (internalQueryPropertyList.includes(itemProperty) === false) {
+      throw Error(`gt :: unexpected property "${itemProperty}", expecting "${internalQueryPropertyList.join(', ')}"`);
     }
-    if (internalQueryItemPropertyTypeDictionary[property] !== 'number') {
-      throw Error(`gt :: unexpected "${property}", expecting property with "number" type, not "${internalQueryItemPropertyTypeDictionary[property]}""`);
+    if (internalQueryItemPropertyTypeDictionary[itemProperty] !== 'number') {
+      throw Error(`gt :: unexpected "${itemProperty}", expecting property with "number" type, not "${internalQueryItemPropertyTypeDictionary[itemProperty]}""`);
     }
     const tempQueryDataList = internalQueryDataList;
     internalQueryDataList = [];
-    const itemPropertyIndex = internalQueryItemPropertyDictionary[property];
+    const itemPropertyIndex = internalQueryItemPropertyDictionary[itemProperty];
     for (let i = 0, l = tempQueryDataList.length; i < l; i += 1) {
       if (tempQueryDataList[i][itemPropertyIndex] > value) {
         internalQueryDataList.push(tempQueryDataList[i]);
@@ -112,22 +112,22 @@ const Query = {
     }
     return Query;
   },
-  gte: (property, value) => {
-    if (isValidNonEmptyString(property) === false) {
-      throw Error('gte :: 1st parameter "property" must be a non-empty string');
+  gte: (itemProperty, value) => {
+    if (isValidNonEmptyString(itemProperty) === false) {
+      throw Error('gte :: 1st parameter "itemProperty" must be a non-empty string');
     }
     if (isValidNumber(value) === false) {
       throw Error('gte :: 2nd parameter "value" must be a valid number');
     }
-    if (internalQueryPropertyList.includes(property) === false) {
-      throw Error(`gte :: unexpected property "${property}", expecting "${internalQueryPropertyList.join(', ')}"`);
+    if (internalQueryPropertyList.includes(itemProperty) === false) {
+      throw Error(`gte :: unexpected property "${itemProperty}", expecting "${internalQueryPropertyList.join(', ')}"`);
     }
-    if (internalQueryItemPropertyTypeDictionary[property] !== 'number') {
-      throw Error(`gte :: unexpected "${property}", expecting property with "number" type, not "${internalQueryItemPropertyTypeDictionary[property]}""`);
+    if (internalQueryItemPropertyTypeDictionary[itemProperty] !== 'number') {
+      throw Error(`gte :: unexpected "${itemProperty}", expecting property with "number" type, not "${internalQueryItemPropertyTypeDictionary[itemProperty]}""`);
     }
     const tempQueryDataList = internalQueryDataList;
     internalQueryDataList = [];
-    const itemPropertyIndex = internalQueryItemPropertyDictionary[property];
+    const itemPropertyIndex = internalQueryItemPropertyDictionary[itemProperty];
     for (let i = 0, l = tempQueryDataList.length; i < l; i += 1) {
       if (tempQueryDataList[i][itemPropertyIndex] >= value) {
         internalQueryDataList.push(tempQueryDataList[i]);
@@ -135,22 +135,22 @@ const Query = {
     }
     return Query;
   },
-  lt: (property, value) => {
-    if (isValidNonEmptyString(property) === false) {
-      throw Error('lt :: 1st parameter "property" must be a non-empty string');
+  lt: (itemProperty, value) => {
+    if (isValidNonEmptyString(itemProperty) === false) {
+      throw Error('lt :: 1st parameter "itemProperty" must be a non-empty string');
     }
     if (isValidNumber(value) === false) {
       throw Error('lt :: 2nd parameter "value" must be a valid number');
     }
-    if (internalQueryPropertyList.includes(property) === false) {
-      throw Error(`lt :: unexpected property "${property}", expecting "${internalQueryPropertyList.join(', ')}"`);
+    if (internalQueryPropertyList.includes(itemProperty) === false) {
+      throw Error(`lt :: unexpected property "${itemProperty}", expecting "${internalQueryPropertyList.join(', ')}"`);
     }
-    if (internalQueryItemPropertyTypeDictionary[property] !== 'number') {
-      throw Error(`lt :: unexpected "${property}", expecting property with "number" type, not "${internalQueryItemPropertyTypeDictionary[property]}""`);
+    if (internalQueryItemPropertyTypeDictionary[itemProperty] !== 'number') {
+      throw Error(`lt :: unexpected "${itemProperty}", expecting property with "number" type, not "${internalQueryItemPropertyTypeDictionary[itemProperty]}""`);
     }
     const tempQueryDataList = internalQueryDataList;
     internalQueryDataList = [];
-    const itemPropertyIndex = internalQueryItemPropertyDictionary[property];
+    const itemPropertyIndex = internalQueryItemPropertyDictionary[itemProperty];
     for (let i = 0, l = tempQueryDataList.length; i < l; i += 1) {
       if (tempQueryDataList[i][itemPropertyIndex] < value) {
         internalQueryDataList.push(tempQueryDataList[i]);
@@ -158,22 +158,22 @@ const Query = {
     }
     return Query;
   },
-  lte: (property, value) => {
-    if (isValidNonEmptyString(property) === false) {
-      throw Error('lte :: 1st parameter "property" must be a non-empty string');
+  lte: (itemProperty, value) => {
+    if (isValidNonEmptyString(itemProperty) === false) {
+      throw Error('lte :: 1st parameter "itemProperty" must be a non-empty string');
     }
     if (isValidNumber(value) === false) {
       throw Error('lte :: 2nd parameter "value" must be a valid number');
     }
-    if (internalQueryPropertyList.includes(property) === false) {
-      throw Error(`lte :: unexpected property "${property}", expecting "${internalQueryPropertyList.join(', ')}"`);
+    if (internalQueryPropertyList.includes(itemProperty) === false) {
+      throw Error(`lte :: unexpected property "${itemProperty}", expecting "${internalQueryPropertyList.join(', ')}"`);
     }
-    if (internalQueryItemPropertyTypeDictionary[property] !== 'number') {
-      throw Error(`lte :: unexpected "${property}", expecting property with "number" type, not "${internalQueryItemPropertyTypeDictionary[property]}""`);
+    if (internalQueryItemPropertyTypeDictionary[itemProperty] !== 'number') {
+      throw Error(`lte :: unexpected "${itemProperty}", expecting property with "number" type, not "${internalQueryItemPropertyTypeDictionary[itemProperty]}""`);
     }
     const tempQueryDataList = internalQueryDataList;
     internalQueryDataList = [];
-    const itemPropertyIndex = internalQueryItemPropertyDictionary[property];
+    const itemPropertyIndex = internalQueryItemPropertyDictionary[itemProperty];
     for (let i = 0, l = tempQueryDataList.length; i < l; i += 1) {
       if (tempQueryDataList[i][itemPropertyIndex] <= value) {
         internalQueryDataList.push(tempQueryDataList[i]);
@@ -181,19 +181,19 @@ const Query = {
     }
     return Query;
   },
-  eq: (property, value) => {
-    if (isValidNonEmptyString(property) === false) {
-      throw Error('eq :: 1st parameter "property" must be a non-empty string');
+  eq: (itemProperty, value) => {
+    if (isValidNonEmptyString(itemProperty) === false) {
+      throw Error('eq :: 1st parameter "itemProperty" must be a non-empty string');
     }
     if (isValidNumber(value) === false) {
       throw Error('eq :: 2nd parameter "value" must be a valid number');
     }
-    if (internalQueryPropertyList.includes(property) === false) {
-      throw Error(`eq :: unexpected property "${property}", expecting "${internalQueryPropertyList.join(', ')}"`);
+    if (internalQueryPropertyList.includes(itemProperty) === false) {
+      throw Error(`eq :: unexpected property "${itemProperty}", expecting "${internalQueryPropertyList.join(', ')}"`);
     }
     const tempQueryDataList = internalQueryDataList;
     internalQueryDataList = [];
-    const itemPropertyIndex = internalQueryItemPropertyDictionary[property];
+    const itemPropertyIndex = internalQueryItemPropertyDictionary[itemProperty];
     for (let i = 0, l = tempQueryDataList.length; i < l; i += 1) {
       if (tempQueryDataList[i][itemPropertyIndex] === value) {
         internalQueryDataList.push(tempQueryDataList[i]);
@@ -201,19 +201,19 @@ const Query = {
     }
     return Query;
   },
-  neq: (property, value) => {
-    if (isValidNonEmptyString(property) === false) {
-      throw Error('neq :: 1st parameter "property" must be a non-empty string');
+  neq: (itemProperty, value) => {
+    if (isValidNonEmptyString(itemProperty) === false) {
+      throw Error('neq :: 1st parameter "itemProperty" must be a non-empty string');
     }
     if (isValidNumber(value) === false) {
       throw Error('neq :: 2nd parameter "value" must be a valid number');
     }
-    if (internalQueryPropertyList.includes(property) === false) {
-      throw Error(`neq :: unexpected property "${property}", expecting "${internalQueryPropertyList.join(', ')}"`);
+    if (internalQueryPropertyList.includes(itemProperty) === false) {
+      throw Error(`neq :: unexpected property "${itemProperty}", expecting "${internalQueryPropertyList.join(', ')}"`);
     }
     const tempQueryDataList = internalQueryDataList;
     internalQueryDataList = [];
-    const itemPropertyIndex = internalQueryItemPropertyDictionary[property];
+    const itemPropertyIndex = internalQueryItemPropertyDictionary[itemProperty];
     for (let i = 0, l = tempQueryDataList.length; i < l; i += 1) {
       if (tempQueryDataList[i][itemPropertyIndex] !== value) {
         internalQueryDataList.push(tempQueryDataList[i]);
