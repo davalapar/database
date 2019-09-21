@@ -279,7 +279,7 @@ const Query = {
     if (internalQueryOffset > 0) {
       internalQueryDataList = internalQueryDataList.slice(internalQueryOffset, internalQueryOffset + internalQueryLimit);
     } else if (internalQueryPage > 0) {
-      internalQueryDataList = internalQueryDataList.slice(internalQueryLimit * internalQueryPage, (internalQueryLimit * internalQueryPage) + internalQueryLimit);
+      internalQueryDataList = internalQueryDataList.slice(internalQueryLimit * (internalQueryPage - 1), (internalQueryLimit * (internalQueryPage - 1)) + internalQueryLimit);
     } else {
       internalQueryDataList = internalQueryDataList.slice(0, internalQueryLimit);
     }
