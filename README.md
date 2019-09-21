@@ -18,6 +18,7 @@ yarn add @davalapar/database
 - Queries
   - Designed to be used synchronously
   - Provides strong consistency
+  - Supports sequential sorting of `String` and `Number` fields
 
 #### Table
 
