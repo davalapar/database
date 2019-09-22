@@ -688,6 +688,7 @@ function Table(options) {
     }
     return internalDataDictionary[itemId] !== undefined;
   };
+  this.size = () => internalDataList.length;
 }
 
 module.exports = { Table };
