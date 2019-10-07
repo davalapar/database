@@ -22,13 +22,14 @@ const database = (workerFn) => {
           && Number.isFinite(message[0]) === true
           && typeof message[1] === 'string'
         ) {
-          const [reqNum, fnName] = message;
+          const [reqNum, fnName, ...params] = message;
           switch (fnName) {
             default: {
               worker.send([reqNum, null]);
               break;
             }
           }
+          others[i].forEach((w) => w.send([-reqNum, fnName, ...params]));
         }
       });
     }
@@ -42,7 +43,6 @@ const database = (workerFn) => {
   console.log(`Worker ${process.pid} :: Started.`);
   const requests = {};
   process.on('message', (message) => {
-    console.log({ message });
     if (
       Array.isArray(message) === true
       && typeof message[0] === 'number'
@@ -50,14 +50,19 @@ const database = (workerFn) => {
       && Number.isFinite(message[0]) === true
       && (message[1] === null || typeof message[1] === 'string')
     ) {
-      const [reqNum, error, ...params] = message;
-      const [resolve, reject] = requests[reqNum];
-      if (error !== null) {
-        reject(error);
-      } else {
-        resolve(...params);
+      console.log(process.pid, message[0] > 0 ? 'responded' : 'forwarded', { message });
+      if (message[0] > 0) { // response
+        const [reqNum, error, ...params] = message;
+        const [resolve, reject] = requests[reqNum];
+        if (error !== null) {
+          reject(error);
+        } else {
+          resolve(...params);
+        }
+        delete requests[reqNum];
+      } else if (message[0] < 0) { // forwarded
+        // console.log(process.pid, 'forwarded received');
       }
-      delete requests[reqNum];
     }
   });
   let lastServed = 0;
