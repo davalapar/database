@@ -21,11 +21,7 @@ const t = new Table({
   }),
 });
 
-console.log(t.query().results());
-
 t.clear();
-
-console.log(t.id());
 
 t.add({
   id: t.id(),
@@ -33,4 +29,7 @@ t.add({
   strs: ['yeh', 'fack', 'yehh'],
 });
 
-console.log(t.query().results());
+test('random id', () => {
+  expect(typeof t.id()).toBe('string');
+  expect(t.id().length).toBe(32);
+});
