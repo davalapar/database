@@ -4,9 +4,9 @@ const zlib = require('zlib');
 const crypto = require('crypto');
 const fs = require('fs');
 
-const acceptedItemPropertyTypes = ['boolean', 'number', 'string'];
+const acceptedItemPropertyTypes = ['boolean', 'number', 'string', 'booleans', 'numbers', 'strings'];
 
-const isValidObject = (value) => {
+const isObject = (value) => {
   if (typeof value !== 'object') {
     return false;
   }
@@ -16,38 +16,12 @@ const isValidObject = (value) => {
   return true;
 };
 
-const isValidNonEmptyString = (value) => {
-  if (typeof value !== 'string') {
-    return false;
-  }
-  if (value === '') {
-    return false;
-  }
-  return true;
-};
-
-const isValidNumber = (value) => {
-  if (typeof value !== 'number') {
-    return false;
-  }
-  if (Number.isNaN(value) === true) {
-    return false;
-  }
-  if (Number.isFinite(value) === false) {
-    return false;
-  }
-  return true;
-};
-
-const isValidInteger = (value) => {
-  if (isValidNumber(value) === false) {
-    return false;
-  }
-  if (Math.floor(value) !== value) {
-    return false;
-  }
-  return true;
-};
+const isNonEmptyString = (value) => typeof value === 'string' && value !== '';
+const isNumber = (value) => typeof value === 'number' && Number.isNaN(value) === false && Number.isFinite(value) === true;
+const isInteger = (value) => isNumber(value) === true && Math.floor(value) === value;
+const isArrayOfStrings = (array) => Array.isArray(array) && array.every((value) => typeof value === 'string');
+const isArrayOfBooleans = (array) => Array.isArray(array) && array.every((value) => typeof value === 'boolean');
+const isArrayOfNumbers = (array) => Array.isArray(array) && array.every((value) => typeof value === 'number' && Number.isNaN(value) === false && Number.isFinite(value) === true);
 
 let internalQueryDataList;
 let internalQueryItemPropertyDictionary;
@@ -62,7 +36,8 @@ const Query = {
 
   // SORTS
   ascend: (itemProperty) => {
-    if (isValidNonEmptyString(itemProperty) === false) {
+    // string and number only
+    if (isNonEmptyString(itemProperty) === false) {
       throw Error('ascend :: 1st parameter "itemProperty" must be a non-empty string');
     }
     if (internalQueryPropertyList.includes(itemProperty) === false) {
@@ -75,7 +50,8 @@ const Query = {
     return Query;
   },
   descend: (itemProperty) => {
-    if (isValidNonEmptyString(itemProperty) === false) {
+    // string and number only
+    if (isNonEmptyString(itemProperty) === false) {
       throw Error('descend :: 1st parameter "itemProperty" must be a non-empty string');
     }
     if (internalQueryPropertyList.includes(itemProperty) === false) {
@@ -90,10 +66,11 @@ const Query = {
 
   // FILTERS
   gt: (itemProperty, value) => {
-    if (isValidNonEmptyString(itemProperty) === false) {
+    // number only
+    if (isNonEmptyString(itemProperty) === false) {
       throw Error('gt :: 1st parameter "itemProperty" must be a non-empty string');
     }
-    if (isValidNumber(value) === false) {
+    if (isNumber(value) === false) {
       throw Error('gt :: 2nd parameter "value" must be a valid number');
     }
     if (internalQueryPropertyList.includes(itemProperty) === false) {
@@ -102,21 +79,16 @@ const Query = {
     if (internalQueryItemPropertyTypeDictionary[itemProperty] !== 'number') {
       throw Error(`gt :: unexpected "${itemProperty}", expecting property with "number" type, not "${internalQueryItemPropertyTypeDictionary[itemProperty]}""`);
     }
-    const tempQueryDataList = internalQueryDataList;
-    internalQueryDataList = [];
     const itemPropertyIndex = internalQueryItemPropertyDictionary[itemProperty];
-    for (let i = 0, l = tempQueryDataList.length; i < l; i += 1) {
-      if (tempQueryDataList[i][itemPropertyIndex] > value) {
-        internalQueryDataList.push(tempQueryDataList[i]);
-      }
-    }
+    internalQueryDataList = internalQueryDataList.filter((item) => item[itemPropertyIndex] > value);
     return Query;
   },
   gte: (itemProperty, value) => {
-    if (isValidNonEmptyString(itemProperty) === false) {
+    // number only
+    if (isNonEmptyString(itemProperty) === false) {
       throw Error('gte :: 1st parameter "itemProperty" must be a non-empty string');
     }
-    if (isValidNumber(value) === false) {
+    if (isNumber(value) === false) {
       throw Error('gte :: 2nd parameter "value" must be a valid number');
     }
     if (internalQueryPropertyList.includes(itemProperty) === false) {
@@ -136,10 +108,11 @@ const Query = {
     return Query;
   },
   lt: (itemProperty, value) => {
-    if (isValidNonEmptyString(itemProperty) === false) {
+    // number only
+    if (isNonEmptyString(itemProperty) === false) {
       throw Error('lt :: 1st parameter "itemProperty" must be a non-empty string');
     }
-    if (isValidNumber(value) === false) {
+    if (isNumber(value) === false) {
       throw Error('lt :: 2nd parameter "value" must be a valid number');
     }
     if (internalQueryPropertyList.includes(itemProperty) === false) {
@@ -159,10 +132,11 @@ const Query = {
     return Query;
   },
   lte: (itemProperty, value) => {
-    if (isValidNonEmptyString(itemProperty) === false) {
+    // number only
+    if (isNonEmptyString(itemProperty) === false) {
       throw Error('lte :: 1st parameter "itemProperty" must be a non-empty string');
     }
-    if (isValidNumber(value) === false) {
+    if (isNumber(value) === false) {
       throw Error('lte :: 2nd parameter "value" must be a valid number');
     }
     if (internalQueryPropertyList.includes(itemProperty) === false) {
@@ -182,11 +156,9 @@ const Query = {
     return Query;
   },
   eq: (itemProperty, value) => {
-    if (isValidNonEmptyString(itemProperty) === false) {
+    // string, number, boolean only
+    if (isNonEmptyString(itemProperty) === false) {
       throw Error('eq :: 1st parameter "itemProperty" must be a non-empty string');
-    }
-    if (isValidNumber(value) === false) {
-      throw Error('eq :: 2nd parameter "value" must be a valid number');
     }
     if (internalQueryPropertyList.includes(itemProperty) === false) {
       throw Error(`eq :: unexpected property "${itemProperty}", expecting "${internalQueryPropertyList.join(', ')}"`);
@@ -202,11 +174,9 @@ const Query = {
     return Query;
   },
   neq: (itemProperty, value) => {
-    if (isValidNonEmptyString(itemProperty) === false) {
+    // string, number, boolean only
+    if (isNonEmptyString(itemProperty) === false) {
       throw Error('neq :: 1st parameter "itemProperty" must be a non-empty string');
-    }
-    if (isValidNumber(value) === false) {
-      throw Error('neq :: 2nd parameter "value" must be a valid number');
     }
     if (internalQueryPropertyList.includes(itemProperty) === false) {
       throw Error(`neq :: unexpected property "${itemProperty}", expecting "${internalQueryPropertyList.join(', ')}"`);
@@ -221,10 +191,13 @@ const Query = {
     }
     return Query;
   },
+  has: () => {
+    // strings, numbers, booleans only
+  },
 
   // PAGINATION
   limit: (value) => {
-    if (isValidInteger(value) === false || value <= 0) {
+    if (isInteger(value) === false || value <= 0) {
       throw Error('limit :: expecting "value" to be a valid integer greater than zero');
     }
     internalQueryLimit = value;
@@ -234,7 +207,7 @@ const Query = {
     if (internalQueryPage !== 0) {
       throw Error('page :: cannot use offset() with page()');
     }
-    if (isValidInteger(value) === false || value <= 0) {
+    if (isInteger(value) === false || value <= 0) {
       throw Error('offset :: expecting "value" to be a valid integer greater than zero');
     }
     internalQueryOffset = value;
@@ -247,7 +220,7 @@ const Query = {
     if (internalQueryOffset !== 0) {
       throw Error('page :: cannot use page() with offset()');
     }
-    if (isValidInteger(value) === false || value <= 0) {
+    if (isInteger(value) === false || value <= 0) {
       throw Error('page :: expecting "value" to be a valid integer greater than zero');
     }
     internalQueryPage = value;
@@ -300,7 +273,7 @@ const encode = (decoded) => zlib.gzipSync(JSON.stringify(decoded));
 const decode = (encoded) => JSON.parse(zlib.gunzipSync(encoded));
 
 function Table(options) {
-  if (isValidObject(options) === false) {
+  if (isObject(options) === false) {
     throw Error('new Table :: 1st parameter "options" must be a plain object.');
   }
   const {
@@ -311,21 +284,26 @@ function Table(options) {
     transformFunction,
   } = options;
   // PARAMETER TYPE CHECKS
-  if (isValidNonEmptyString(label) === false) {
+  // Validate label
+  if (isNonEmptyString(label) === false) {
     throw Error('new Table :: "options.label" must be a non-empty string.');
   }
-  if (isValidObject(itemSchema) === false) {
+  // Validate itemSchema
+  if (isObject(itemSchema) === false) {
     throw Error('new Table :: "options.itemSchema" must be a plain object.');
   }
   if (itemSchema.id !== undefined) {
     throw Error('new Table :: "id" property in "options.itemSchema" must be undefined.');
   }
-  if (initialSaveTimeout !== undefined && isValidInteger(initialSaveTimeout) === false) {
+  // Validate initialSaveTimeout
+  if (initialSaveTimeout !== undefined && isInteger(initialSaveTimeout) === false) {
     throw Error('new Table :: "options.initialSaveTimeout" must be an integer.');
   }
-  if (forcedSaveTimeout !== undefined && isValidInteger(forcedSaveTimeout) === false) {
+  // Validate forcedSaveTimeout
+  if (forcedSaveTimeout !== undefined && isInteger(forcedSaveTimeout) === false) {
     throw Error('new Table :: "options.forcedSaveTimeout" must be an integer.');
   }
+  // Validate transformFunction
   if (transformFunction !== undefined && typeof transformFunction !== 'function') {
     throw Error('new Table :: "options.transformFunction" must be a function.');
   }
@@ -358,19 +336,34 @@ function Table(options) {
   }
 
   const itemRecordFromSource = (itemSource, externalMethod) => {
-    if (isValidNonEmptyString(externalMethod) === false) {
+    if (isNonEmptyString(externalMethod) === false) {
       throw Error('internal :: "externalMethod" must be a non-empty string.');
     }
-    if (isValidObject(itemSource) === false) {
+    if (isObject(itemSource) === false) {
       throw Error(`${externalMethod} :: "itemSource" must be a plain object.`);
     }
-    const itemSourceKeys = Object.keys(itemSource);
+    const itemSourceProperties = Object.keys(itemSource);
     const itemRecord = new Array(internalItemPropertyList.length);
     for (let i = 0, l = internalItemPropertyList.length; i < l; i += 1) {
       const itemProperty = internalItemPropertyList[i];
       const itemPropertyType = internalItemPropertyTypeList[i];
       const itemSourcePropertyValue = itemSource[itemProperty];
       switch (itemPropertyType) {
+        case 'numbers': {
+          if (itemSourcePropertyValue === undefined) {
+            if (externalMethod === 'load') {
+              throw Error(`${externalMethod} :: expecting non-undefined "${itemProperty}" property`);
+            }
+            itemRecord[i] = [];
+            break;
+          }
+          if (isArrayOfNumbers(itemSourcePropertyValue) === false) {
+            throw Error(`${externalMethod} :: expecting array of numbers for "${itemProperty}" property`);
+          }
+          itemRecord[i] = [...itemSourcePropertyValue];
+          itemSourceProperties.splice(itemSourceProperties.indexOf(itemProperty), 1);
+          break;
+        }
         case 'number': {
           if (itemSourcePropertyValue === undefined) {
             if (externalMethod === 'load') {
@@ -379,9 +372,26 @@ function Table(options) {
             itemRecord[i] = 0;
             break;
           }
-          if (isValidNumber(itemSourcePropertyValue) === false) {
+          if (isNumber(itemSourcePropertyValue) === false) {
             throw Error(`${externalMethod} :: expecting number for "${itemProperty}" property`);
           }
+          itemRecord[i] = itemSourcePropertyValue;
+          itemSourceProperties.splice(itemSourceProperties.indexOf(itemProperty), 1);
+          break;
+        }
+        case 'strings': {
+          if (itemSourcePropertyValue === undefined) {
+            if (externalMethod === 'load') {
+              throw Error(`${externalMethod} :: expecting non-undefined "${itemProperty}" property`);
+            }
+            itemRecord[i] = [];
+            break;
+          }
+          if (isArrayOfStrings(itemSourcePropertyValue) === false) {
+            throw Error(`${externalMethod} :: expecting array of strings for "${itemProperty}" property`);
+          }
+          itemRecord[i] = [...itemSourcePropertyValue];
+          itemSourceProperties.splice(itemSourceProperties.indexOf(itemProperty), 1);
           break;
         }
         case 'string': {
@@ -412,6 +422,23 @@ function Table(options) {
               }
             }
           }
+          itemRecord[i] = itemSourcePropertyValue;
+          itemSourceProperties.splice(itemSourceProperties.indexOf(itemProperty), 1);
+          break;
+        }
+        case 'booleans': {
+          if (itemSourcePropertyValue === undefined) {
+            if (externalMethod === 'load') {
+              throw Error(`${externalMethod} :: expecting non-undefined "${itemProperty}" property`);
+            }
+            itemRecord[i] = [];
+            break;
+          }
+          if (isArrayOfBooleans(itemSourcePropertyValue) === false) {
+            throw Error(`${externalMethod} :: expecting array of booleans for "${itemProperty}" property`);
+          }
+          itemRecord[i] = [...itemSourcePropertyValue];
+          itemSourceProperties.splice(itemSourceProperties.indexOf(itemProperty), 1);
           break;
         }
         case 'boolean': {
@@ -425,25 +452,18 @@ function Table(options) {
           if (typeof itemSourcePropertyValue !== 'boolean') {
             throw Error(`${externalMethod} :: expecting boolean-type value for "${itemProperty}" property`);
           }
+          itemRecord[i] = itemSourcePropertyValue;
+          itemSourceProperties.splice(itemSourceProperties.indexOf(itemProperty), 1);
           break;
         }
         default: {
           throw Error(`${externalMethod} :: internal error, unexpected "${itemPropertyType}" type.`);
         }
       }
-      if (itemSourcePropertyValue !== undefined) {
-        itemRecord[i] = itemSourcePropertyValue;
-        itemSourceKeys.splice(itemSourceKeys.indexOf(itemProperty), 1);
-      }
     }
-    for (let i = 0, l = itemSourceKeys.length; i < l; i += 1) {
-      const itemProperty = itemSourceKeys[i];
-      if (itemSource[itemProperty] === undefined) {
-        itemSourceKeys.splice(itemSourceKeys.indexOf(itemProperty), 1);
-      }
-    }
-    if (itemSourceKeys.length > 0) {
-      throw Error(`${externalMethod} :: unexpected properties "${itemSourceKeys.join(', ')}"`);
+    const unexpectedProperties = itemSourceProperties.filter((property) => internalItemPropertyList.includes(property) === false);
+    if (unexpectedProperties.length > 0) {
+      throw Error(`${externalMethod} :: unexpected properties "${itemSourceProperties.join(', ')}"`);
     }
     return itemRecord;
   };
@@ -494,8 +514,31 @@ function Table(options) {
           const itemRecordType = typeof transformedItemRecord[x];
           const itemProperty = internalItemPropertyList[x];
           const itemPropertyType = internalItemPropertyTypeDictionary[itemProperty];
-          if (itemRecordType !== itemPropertyType) {
-            throw Error(`load :: unexpected "${typeof transformedItemRecord[x]}" for "${itemProperty}" property, expecting "${itemPropertyType}"`);
+          switch (itemPropertyType) {
+            case 'strings': {
+              if (isArrayOfStrings(transformedItemRecord[x]) === false) {
+                throw Error(`load :: Expecting array of strings for ${itemProperty}!`);
+              }
+              break;
+            }
+            case 'numbers': {
+              if (isArrayOfNumbers(transformedItemRecord[x]) === false) {
+                throw Error(`load :: Expecting array of numbers for ${itemProperty}!`);
+              }
+              break;
+            }
+            case 'booleans': {
+              if (isArrayOfBooleans(transformedItemRecord[x]) === false) {
+                throw Error(`load :: Expecting array of booleans for ${itemProperty}!`);
+              }
+              break;
+            }
+            default: {
+              if (itemRecordType !== itemPropertyType) {
+                throw Error(`load :: Expecting "${itemPropertyType}" for ${itemProperty}!`);
+              }
+              break;
+            }
           }
         }
         internalDataList[i] = transformedItemRecord;
@@ -514,7 +557,7 @@ function Table(options) {
   process.on('SIGINT', () => {
     console.log('Table: SIGINT received.');
     try {
-      console.log('Table: Graceful save START');
+      console.log('Table: Graceful save STARTED');
       if (internalCurrentInitialSaveTimeout !== undefined) {
         clearTimeout(internalCurrentInitialSaveTimeout);
         internalCurrentInitialSaveTimeout = undefined;
@@ -527,7 +570,7 @@ function Table(options) {
       fs.writeFileSync(internalTempPath, encoded);
       fs.renameSync(internalMainPath, internalOldPath);
       fs.writeFileSync(internalMainPath, encoded);
-      console.log('Table: Graceful save OK');
+      console.log('Table: Graceful save COMPLETE');
     } catch (e) {
       console.error(`Table: Graceful save ERROR, ${e.message}`);
       process.exit(1);
@@ -618,7 +661,7 @@ function Table(options) {
     return this;
   };
   this.get = (itemId) => {
-    if (isValidNonEmptyString(itemId) === false) {
+    if (isNonEmptyString(itemId) === false) {
       throw Error('get :: 1st parameter "itemId" must be a non-empty string.');
     }
     const existingItemRecord = internalDataDictionary[itemId];
@@ -628,7 +671,7 @@ function Table(options) {
     return hydrateItemFromRecord(existingItemRecord);
   };
   this.delete = (itemId) => {
-    if (isValidNonEmptyString(itemId) === false) {
+    if (isNonEmptyString(itemId) === false) {
       throw Error('delete :: 1st parameter "itemId" must be a non-empty string.');
     }
     const existingItemRecord = internalDataDictionary[itemId];
@@ -641,10 +684,10 @@ function Table(options) {
     return this;
   };
   this.increment = (itemId, itemProperty) => {
-    if (isValidNonEmptyString(itemId) === false) {
+    if (isNonEmptyString(itemId) === false) {
       throw Error('increment :: 1st parameter "itemId" must be a non-empty string.');
     }
-    if (isValidNonEmptyString(itemProperty) === false) {
+    if (isNonEmptyString(itemProperty) === false) {
       throw Error('increment :: 2nd parameter "itemProperty" must be a non-empty string.');
     }
     if (internalItemPropertyList.includes(itemProperty) === false) {
@@ -662,10 +705,10 @@ function Table(options) {
     return this;
   };
   this.decrement = (itemId, itemProperty) => {
-    if (isValidNonEmptyString(itemId) === false) {
+    if (isNonEmptyString(itemId) === false) {
       throw Error('decrement :: 1st parameter "itemId" must be a non-empty string.');
     }
-    if (isValidNonEmptyString(itemProperty) === false) {
+    if (isNonEmptyString(itemProperty) === false) {
       throw Error('decrement :: 2nd parameter "itemProperty" must be a non-empty string.');
     }
     if (internalItemPropertyList.includes(itemProperty) === false) {
@@ -683,7 +726,7 @@ function Table(options) {
     return this;
   };
   this.has = (itemId) => {
-    if (isValidNonEmptyString(itemId) === false) {
+    if (isNonEmptyString(itemId) === false) {
       throw Error('has :: 1st parameter "itemId" must be a non-empty string.');
     }
     return internalDataDictionary[itemId] !== undefined;
