@@ -1,6 +1,8 @@
 
 const crypto = require('crypto');
 
+const copyObject = require('./copyObject');
+
 let internalQuerylist = [];
 let internalQuerySorts = [];
 let internalQueryLimit = Infinity;
@@ -27,7 +29,7 @@ const Query = {
   results: () => {},
 };
 
-function Table(tableOptions) {
+function Table(tableOptions, database) {
   const {
     label,
     listchema,
@@ -60,26 +62,68 @@ function Table(tableOptions) {
   };
 
   // [ ] typechecks?
-  // [ ] working?
+  // [x] working?
   this.add = (newItem) => {
-    list.push(newItem);
-    listIndex[newItem.id] = list.length - 1;
-    dictionary[newItem.id] = newItem;
+    const { id } = newItem;
+    const duplicateItem = copyObject(newItem);
+    list.push(duplicateItem);
+    dictionary[id] = duplicateItem;
+    database.save();
     return this;
   };
+
+  // [ ] typechecks?
+  // [x] working?
   this.update = (updatedItem) => {
-    const existingItem = dictionary[updatedItem.id];
-    const index = list.indexOf(existingItem);
-    list[index] = updatedItem;
+    const { id } = updatedItem;
+    const existingItem = dictionary[id];
+    const existingItemIndex = list.indexOf(existingItem);
+    const duplicateItem = copyObject(updatedItem);
+    list[existingItemIndex] = duplicateItem;
+    dictionary[id] = duplicateItem;
+    database.save();
+    return this;
   };
+
+  // [ ] typechecks?
+  // [x] working?
   this.get = (itemId) => dictionary[itemId];
+
+  // [ ] typechecks?
+  // [ ] working?
   this.delete = (itemId) => {
-    const index = list.indexOf(itemId);
-    list.splice();
+    const existingItem = dictionary[itemId];
+    const existingItemIndex = list.indexOf(existingItem);
+    list.splice(existingItemIndex, 1);
+    delete dictionary[itemId];
+    database.save();
+    return this;
   };
-  this.increment = () => {};
-  this.decrement = () => {};
-  this.has = () => {};
+
+  // [ ] typechecks?
+  // [ ] working?
+  this.increment = (itemId, itemField) => {
+    const existingItem = dictionary[itemId];
+    existingItem[itemField] += 1;
+    database.save();
+    return this;
+  };
+
+  // [ ] typechecks?
+  // [ ] working?
+  this.decrement = (itemId, itemField) => {
+    const existingItem = dictionary[itemId];
+    existingItem[itemField] -= 1;
+    database.save();
+    return this;
+  };
+
+  // [ ] typechecks?
+  // [ ] working?
+  this.has = (itemId) => dictionary[itemId] !== undefined;
+
+  // [ ] typechecks?
+  // [ ] working?
   this.query = () => {
     internalQuerylist = [];
     internalQuerySorts = [];

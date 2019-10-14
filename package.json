@@ -17,5 +17,6 @@
   },
   "scripts": {
     "test": "jest"
-  }
+  },
+  "dependencies": {}
 }
