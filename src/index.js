@@ -41,7 +41,6 @@ function Table(tableOptions, database) {
     transformFunction,
   } = tableOptions;
 
-
   let modified = false;
   let list = [];
   let dictionary = {};
