@@ -1,7 +1,6 @@
 
 const crypto = require('crypto');
-
-const copyObject = require('./copyObject');
+const copy = require('./copy');
 
 let internalQuerylist = [];
 let internalQuerySorts = [];
@@ -65,7 +64,7 @@ function Table(tableOptions, database) {
   // [x] working?
   this.add = (newItem) => {
     const { id } = newItem;
-    const duplicateItem = copyObject(newItem);
+    const duplicateItem = copy(newItem);
     list.push(duplicateItem);
     dictionary[id] = duplicateItem;
     database.save();
@@ -78,7 +77,7 @@ function Table(tableOptions, database) {
     const { id } = updatedItem;
     const existingItem = dictionary[id];
     const existingItemIndex = list.indexOf(existingItem);
-    const duplicateItem = copyObject(updatedItem);
+    const duplicateItem = copy(updatedItem);
     list[existingItemIndex] = duplicateItem;
     dictionary[id] = duplicateItem;
     database.save();
