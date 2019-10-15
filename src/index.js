@@ -1,5 +1,7 @@
+/* eslint-disable no-console */
 
 const crypto = require('crypto');
+const fs = require('fs');
 const copy = require('./copy');
 
 let internalQuerylist = [];
@@ -7,6 +9,8 @@ let internalQuerySorts = [];
 let internalQueryLimit = Infinity;
 let internalQueryOffset = 0;
 let internalQueryPage = 0;
+
+// sorting a coordinate field requires a third and fourth parameter
 
 const Query = {
   // sorts:
@@ -28,6 +32,8 @@ const Query = {
   results: () => {},
 };
 
+const stringify = Symbol('stringify');
+
 function Table(tableOptions, database) {
   const {
     label,
@@ -35,6 +41,8 @@ function Table(tableOptions, database) {
     transformFunction,
   } = tableOptions;
 
+
+  let modified = false;
   let list = [];
   let dictionary = {};
 
@@ -57,6 +65,8 @@ function Table(tableOptions, database) {
   this.clear = () => {
     list = [];
     dictionary = {};
+    modified = true;
+    database.save();
     return this;
   };
 
@@ -67,6 +77,7 @@ function Table(tableOptions, database) {
     const duplicateItem = copy(newItem);
     list.push(duplicateItem);
     dictionary[id] = duplicateItem;
+    modified = true;
     database.save();
     return this;
   };
@@ -80,6 +91,7 @@ function Table(tableOptions, database) {
     const duplicateItem = copy(updatedItem);
     list[existingItemIndex] = duplicateItem;
     dictionary[id] = duplicateItem;
+    modified = true;
     database.save();
     return this;
   };
@@ -95,6 +107,7 @@ function Table(tableOptions, database) {
     const existingItemIndex = list.indexOf(existingItem);
     list.splice(existingItemIndex, 1);
     delete dictionary[itemId];
+    modified = true;
     database.save();
     return this;
   };
@@ -104,6 +117,7 @@ function Table(tableOptions, database) {
   this.increment = (itemId, itemField) => {
     const existingItem = dictionary[itemId];
     existingItem[itemField] += 1;
+    modified = true;
     database.save();
     return this;
   };
@@ -113,6 +127,7 @@ function Table(tableOptions, database) {
   this.decrement = (itemId, itemField) => {
     const existingItem = dictionary[itemId];
     existingItem[itemField] -= 1;
+    modified = true;
     database.save();
     return this;
   };
@@ -131,6 +146,17 @@ function Table(tableOptions, database) {
     internalQueryPage = 0;
     return Query;
   };
+
+  // [x] typechecks?
+  // [x] working?
+  this.modified = () => modified;
+
+  // [x] typechecks?
+  // [x] working?
+  this[stringify] = () => {
+    modified = false;
+    JSON.stringify(list);
+  };
 }
 
 function Database(databaseOptions) {
@@ -139,13 +165,48 @@ function Database(databaseOptions) {
     initialSaveTimeout,
     forcedSaveTimeout,
   } = databaseOptions;
+  const list = [];
   const dictionary = {};
   for (let i = 0, l = tableSchemas.length; i < l; i += 1) {
     const table = new Table(tableSchemas[i], this);
+    list[i] = table;
     dictionary[table.label()] = table;
   }
+  const internalSave = async () => {
+    await list.map(async (table) => {
+      if (table.modified() === true) {
+        await fs.promises.writeFile(`./tables/${table.label().table}`, table[stringify]());
+      }
+    });
+  };
   this.table = (label) => dictionary[label];
-  this.save = () => {};
+  // use skip counter instead of forced timeout
+  // use internal interval instead of internal timeouts
+
+  let saveTimeout;
+  let skipNextSave = false;
+  let skips = 0;
+  this.save = () => {
+    if (saveTimeout === undefined) { // if timeout does not exist, create it
+      saveTimeout = setTimeout(() => {
+        saveTimeout = undefined; // if this timeout hits, we reset that var
+        if (skipNextSave === true) { // if next saved is skipped
+          skipNextSave = false; // we reset that var first
+          if (skips < 60) { // we check if we have already skipped 59 times
+            skips += 1; // if not, we increment a counter
+            this.save(); // we re-create the timeout
+          } else {
+            skips = 0; // we reset the counter
+            internalSave(); // we save changes
+          }
+        } else { // if next save is not skipped
+          internalSave(); // we save changes
+        }
+      }, 1000);
+    } else { // if timeout exists, we try to skip next save
+      skipNextSave = true;
+    }
+  };
 }
 
 const db = new Database({
