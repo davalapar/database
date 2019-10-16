@@ -14,20 +14,22 @@ let internalQueryPage = 0;
 
 const Query = {
   // sorts:
-  ascend: () => {},
-  descend: () => {},
+  ascend: (itemField) => {},
+  descend: (itemField) => {},
+  ascendh: (itemField, coordinates) => {},
+  descendh: (itemField, coordinates) => {},
   // filters:
-  gt: () => {},
-  gte: () => {},
-  lt: () => {},
-  lte: () => {},
-  eq: () => {},
-  neq: () => {},
-  has: () => {},
+  gt: (itemField, value) => {},
+  gte: (itemField, value) => {},
+  lt: (itemField, value) => {},
+  lte: (itemField, value) => {},
+  eq: (itemField, value) => {},
+  neq: (itemField, value) => {},
+  has: (itemField, value) => {},
   // paginate:
-  limit: () => {},
-  offset: () => {},
-  page: () => {},
+  limit: (value) => {},
+  offset: (value) => {},
+  page: (value) => {},
   // results:
   results: () => {},
 };
@@ -37,7 +39,7 @@ const stringify = Symbol('stringify');
 function Table(tableOptions, database) {
   const {
     label,
-    listchema,
+    itemSchema,
     transformFunction,
   } = tableOptions;
 
@@ -100,7 +102,7 @@ function Table(tableOptions, database) {
   this.get = (itemId) => dictionary[itemId];
 
   // [ ] typechecks?
-  // [ ] working?
+  // [x] working?
   this.delete = (itemId) => {
     const existingItem = dictionary[itemId];
     const existingItemIndex = list.indexOf(existingItem);
@@ -112,7 +114,7 @@ function Table(tableOptions, database) {
   };
 
   // [ ] typechecks?
-  // [ ] working?
+  // [x] working?
   this.increment = (itemId, itemField) => {
     const existingItem = dictionary[itemId];
     existingItem[itemField] += 1;
@@ -122,7 +124,7 @@ function Table(tableOptions, database) {
   };
 
   // [ ] typechecks?
-  // [ ] working?
+  // [x] working?
   this.decrement = (itemId, itemField) => {
     const existingItem = dictionary[itemId];
     existingItem[itemField] -= 1;
@@ -132,11 +134,11 @@ function Table(tableOptions, database) {
   };
 
   // [ ] typechecks?
-  // [ ] working?
+  // [x] working?
   this.has = (itemId) => dictionary[itemId] !== undefined;
 
   // [ ] typechecks?
-  // [ ] working?
+  // [x] working?
   this.query = () => {
     internalQuerylist = [];
     internalQuerySorts = [];
