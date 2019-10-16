@@ -90,9 +90,25 @@ function Table(tableOptions, database) {
     transformFunction,
   } = tableOptions;
 
+  if (typeof label !== 'string' || label === '') {
+    throw Error('table :: label :: unexpected non-empty string');
+  }
+  if (typeof itemSchema !== 'object' || itemSchema === null) {
+    throw Error('table :: itemSchema :: unexpected non-plain object');
+  }
+  if (transformFunction !== undefined && typeof transformFunction !== 'function') {
+    throw Error('table :: transformFunction :: unexpected non-function');
+  }
+
   let modified = false;
   let list = [];
   let dictionary = {};
+
+  // validate schema
+  const itemFields = ['id', ...Object.keys(itemSchema).sort((a, b) => a.localeCompare(b))];
+  const itemFieldsStringified = JSON.stringify(itemFields);
+
+  // load items
 
   // [x] typechecks?
   // [x] working?
@@ -209,14 +225,14 @@ function Table(tableOptions, database) {
 
 function Database(databaseOptions) {
   const {
-    tableSchemas,
+    tableOptions,
     saveCheckInterval,
     saveMaxSkips,
   } = databaseOptions;
   const list = [];
   const dictionary = {};
-  for (let i = 0, l = tableSchemas.length; i < l; i += 1) {
-    const table = new Table(tableSchemas[i], this);
+  for (let i = 0, l = tableOptions.length; i < l; i += 1) {
+    const table = new Table(tableOptions[i], this);
     list[i] = table;
     dictionary[table.label()] = table;
   }
@@ -264,7 +280,7 @@ function Database(databaseOptions) {
 const db = new Database({
   saveCheckInterval: 1000,
   saveMaxSkips: 59,
-  tableSchemas: [
+  tableOptions: [
     {
       label: 'users',
       itemSchema: {
