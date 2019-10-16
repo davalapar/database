@@ -13,24 +13,71 @@ let internalQueryPage = 0;
 // sorting a coordinate field requires a third and fourth parameter
 
 const Query = {
-  // sorts:
+  // SORTS:
+
+  // [ ] typechecks?
+  // [ ] working?
   ascend: (itemField) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   descend: (itemField) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   ascendh: (itemField, coordinates) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   descendh: (itemField, coordinates) => {},
-  // filters:
+
+  // FILTERS:
+
+  // [ ] typechecks?
+  // [ ] working?
   gt: (itemField, value) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   gte: (itemField, value) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   lt: (itemField, value) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   lte: (itemField, value) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   eq: (itemField, value) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   neq: (itemField, value) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   has: (itemField, value) => {},
-  // paginate:
+
+  // PAGINATE:
+
+  // [ ] typechecks?
+  // [ ] working?
   limit: (value) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   offset: (value) => {},
+
+  // [ ] typechecks?
+  // [ ] working?
   page: (value) => {},
   // results:
+
+  // [ ] typechecks?
+  // [ ] working?
   results: () => {},
 };
 
@@ -220,7 +267,7 @@ const db = new Database({
   tableSchemas: [
     {
       label: 'users',
-      listchema: {
+      itemSchema: {
         name: 'string',
         age: 'number',
         active: 'boolean',
