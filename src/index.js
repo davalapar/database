@@ -161,8 +161,8 @@ function Table(tableOptions, database) {
 function Database(databaseOptions) {
   const {
     tableSchemas,
-    initialSaveTimeout,
-    forcedSaveTimeout,
+    saveCheckInterval,
+    saveMaxSkips,
   } = databaseOptions;
   const list = [];
   const dictionary = {};
@@ -171,46 +171,50 @@ function Database(databaseOptions) {
     list[i] = table;
     dictionary[table.label()] = table;
   }
-  const internalSave = async () => {
-    await list.map(async (table) => {
-      if (table.modified() === true) {
-        await fs.promises.writeFile(`./tables/${table.label().table}`, table[stringify]());
-      }
-    });
-  };
-  this.table = (label) => dictionary[label];
-  // use skip counter instead of forced timeout
-  // use internal interval instead of internal timeouts
 
-  let saveTimeout;
-  let skipNextSave = false;
-  let skips = 0;
+  // [ ] typechecks?
+  // [x] working?
+  this.table = (label) => dictionary[label];
+
+  const internalSave = list.map(async (table) => {
+    if (table.modified() === true) {
+      await fs.promises.writeFile(`./tables/${table.label()}.table`, table[stringify]());
+      console.log(`${table.label()} : modified`);
+      return;
+    }
+    console.log(`${table.label()} : not modified`);
+  });
+  let saveInterval;
+  let saveSkipNext = false;
+  let saveSkips = 0;
   this.save = () => {
-    if (saveTimeout === undefined) { // if timeout does not exist, create it
-      saveTimeout = setTimeout(() => {
-        saveTimeout = undefined; // if this timeout hits, we reset that var
-        if (skipNextSave === true) { // if next saved is skipped
-          skipNextSave = false; // we reset that var first
-          if (skips < 60) { // we check if we have already skipped 59 times
-            skips += 1; // if not, we increment a counter
-            this.save(); // we re-create the timeout
+    if (saveInterval === undefined) {
+      saveInterval = setInterval(() => {
+        if (saveSkipNext === true) {
+          saveSkipNext = false;
+          if (saveSkips < saveMaxSkips) {
+            saveSkips += 1;
           } else {
-            skips = 0; // we reset the counter
-            internalSave(); // we save changes
+            saveSkips = 0;
+            internalSave();
+            clearInterval(saveInterval);
+            saveInterval = undefined;
           }
-        } else { // if next save is not skipped
-          internalSave(); // we save changes
+        } else {
+          internalSave();
+          clearInterval(saveInterval);
+          saveInterval = undefined;
         }
-      }, 1000);
-    } else { // if timeout exists, we try to skip next save
-      skipNextSave = true;
+      }, saveCheckInterval);
+    } else {
+      saveSkipNext = true;
     }
   };
 }
 
 const db = new Database({
-  initialSaveTimeout: 5000,
-  forcedSaveTimeout: 300000,
+  saveCheckInterval: 1000,
+  saveMaxSkips: 59,
   tableSchemas: [
     {
       label: 'users',
