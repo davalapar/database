@@ -81,7 +81,108 @@ const Query = {
   results: () => {},
 };
 
+const modified = Symbol('modified');
 const stringify = Symbol('stringify');
+
+const validItemFieldTypes = [
+  'boolean',
+  'string',
+  'number',
+  'booleans',
+  'strings',
+  'numbers',
+  'coordinates',
+];
+
+const validateItem = (method, itemFieldKeys, itemFieldTypes, item) => {
+  if (typeof item !== 'object' || item === null) {
+    throw Error('table :: item :: unexpected non-plain object');
+  }
+  for (let i = 0, l = itemFieldKeys.length; i < l; i += 1) {
+    const itemFieldKey = itemFieldKeys[i];
+    const itemFieldType = itemFieldTypes[i];
+    switch (itemFieldType) {
+      case 'boolean': {
+        if (typeof item[itemFieldKey] !== 'boolean') {
+          throw Error(`table :: ${method} :: unexpected non-boolean value for "${itemFieldKey}" field`);
+        }
+        return;
+      }
+      case 'string': {
+        if (typeof item[itemFieldKey] !== 'string') {
+          throw Error(`table :: ${method} :: unexpected non-string value for "${itemFieldKey}" field`);
+        }
+        return;
+      }
+      case 'number': {
+        if (typeof item[itemFieldKey] !== 'number') {
+          throw Error(`table :: ${method} :: unexpected non-number value for "${itemFieldKey}" field`);
+        }
+        if (Number.isNaN(item[itemFieldKey]) === true) {
+          throw Error(`table :: ${method} :: unexpected NaN value for "${itemFieldKey}" field`);
+        }
+        if (Number.isFinite(item[itemFieldKey]) === false) {
+          throw Error(`table :: ${method} :: unexpected non-finite value for "${itemFieldKey}" field`);
+        }
+        return;
+      }
+      case 'booleans': {
+        if (Array.isArray(item[itemFieldKey]) === false) {
+          throw Error(`table :: ${method} :: unexpected non-array value for "${itemFieldKey}" field`);
+        }
+        if (item[itemFieldKey].every((value) => typeof value === 'boolean') === false) {
+          throw Error(`table :: ${method} :: unexpected non-boolean value in "${itemFieldKey}" array field`);
+        }
+        return;
+      }
+      case 'strings': {
+        if (Array.isArray(item[itemFieldKey]) === false) {
+          throw Error(`table :: ${method} :: unexpected non-array value for "${itemFieldKey}" field`);
+        }
+        if (item[itemFieldKey].every((value) => typeof value === 'string') === false) {
+          throw Error(`table :: ${method} :: unexpected non-string value in "${itemFieldKey}" array field`);
+        }
+        return;
+      }
+      case 'numbers': {
+        if (Array.isArray(item[itemFieldKey]) === false) {
+          throw Error(`table :: ${method} :: unexpected non-array value for "${itemFieldKey}" field`);
+        }
+        if (item[itemFieldKey].every((value) => typeof value === 'number') === false) {
+          throw Error(`table :: ${method} :: unexpected non-number value in "${itemFieldKey}" array field`);
+        }
+        if (item[itemFieldKey].every((value) => Number.isNaN(value) === false) === false) {
+          throw Error(`table :: ${method} :: unexpected NaN value in "${itemFieldKey}" array field`);
+        }
+        if (item[itemFieldKey].every((value) => Number.isFinite(value) === true) === false) {
+          throw Error(`table :: ${method} :: unexpected non-finite value in "${itemFieldKey}" array field`);
+        }
+        return;
+      }
+      case 'coordinates': {
+        if (Array.isArray(item[itemFieldKey]) === false) {
+          throw Error(`table :: ${method} :: unexpected non-array value for "${itemFieldKey}" field`);
+        }
+        if (item[itemFieldKey].every((value) => typeof value === 'number') === false) {
+          throw Error(`table :: ${method} :: unexpected non-number value in "${itemFieldKey}" array field`);
+        }
+        if (item[itemFieldKey].every((value) => Number.isNaN(value) === false) === false) {
+          throw Error(`table :: ${method} :: unexpected NaN value in "${itemFieldKey}" array field`);
+        }
+        if (item[itemFieldKey].every((value) => Number.isFinite(value) === true) === false) {
+          throw Error(`table :: ${method} :: unexpected non-finite value in "${itemFieldKey}" array field`);
+        }
+        if (item[itemFieldKey].length !== 2) {
+          throw Error(`table :: ${method} :: unexpected array length for "${itemFieldKey}" field`);
+        }
+        return;
+      }
+      default: {
+        return;
+      }
+    }
+  }
+};
 
 function Table(tableOptions, database) {
   const {
@@ -100,13 +201,24 @@ function Table(tableOptions, database) {
     throw Error('table :: transformFunction :: unexpected non-function');
   }
 
-  let modified = false;
+  this[modified] = false;
   let list = [];
   let dictionary = {};
 
   // validate schema
-  const itemFields = ['id', ...Object.keys(itemSchema).sort((a, b) => a.localeCompare(b))];
-  const itemFieldsStringified = JSON.stringify(itemFields);
+  const itemFieldKeys = ['id', ...Object.keys(itemSchema).sort((a, b) => a.localeCompare(b))];
+  const itemFieldsStringified = JSON.stringify(itemFieldKeys);
+  for (let i = 0, l = itemFieldKeys.length; i < l; i += 1) {
+    const itemFieldKey = itemFieldKeys[i];
+    if (itemFieldKey === 'id') {
+      continue; // eslint-disable-line no-continue
+    }
+    const itemFieldType = itemSchema[itemFieldKey];
+    if (validItemFieldTypes.includes(itemFieldType) === false) {
+      throw Error('table :: transformFunction :: unexpected field type');
+    }
+  }
+  const itemFieldTypes = itemFieldKeys.map((itemFieldKey) => itemSchema[itemFieldKey] || 'string');
 
   // load items
 
@@ -129,33 +241,41 @@ function Table(tableOptions, database) {
   this.clear = () => {
     list = [];
     dictionary = {};
-    modified = true;
+    this[modified] = true;
     database.save();
     return this;
   };
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   this.add = (newItem) => {
+    validateItem('add', itemFieldKeys, itemFieldTypes, newItem);
     const { id } = newItem;
+    if (dictionary[id] !== undefined) {
+      throw Error(`table :: add :: unexpected existing id "${id}"`);
+    }
     const duplicateItem = copy(newItem);
     list.push(duplicateItem);
     dictionary[id] = duplicateItem;
-    modified = true;
+    this[modified] = true;
     database.save();
     return this;
   };
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   this.update = (updatedItem) => {
+    validateItem('update', itemFieldKeys, itemFieldTypes, updatedItem);
     const { id } = updatedItem;
+    if (dictionary[id] === undefined) {
+      throw Error(`table :: update :: unexpected non-existing id "${id}"`);
+    }
     const existingItem = dictionary[id];
     const existingItemIndex = list.indexOf(existingItem);
     const duplicateItem = copy(updatedItem);
     list[existingItemIndex] = duplicateItem;
     dictionary[id] = duplicateItem;
-    modified = true;
+    this[modified] = true;
     database.save();
     return this;
   };
@@ -171,7 +291,7 @@ function Table(tableOptions, database) {
     const existingItemIndex = list.indexOf(existingItem);
     list.splice(existingItemIndex, 1);
     delete dictionary[itemId];
-    modified = true;
+    this[modified] = true;
     database.save();
     return this;
   };
@@ -181,7 +301,7 @@ function Table(tableOptions, database) {
   this.increment = (itemId, itemField) => {
     const existingItem = dictionary[itemId];
     existingItem[itemField] += 1;
-    modified = true;
+    this[modified] = true;
     database.save();
     return this;
   };
@@ -191,7 +311,7 @@ function Table(tableOptions, database) {
   this.decrement = (itemId, itemField) => {
     const existingItem = dictionary[itemId];
     existingItem[itemField] -= 1;
-    modified = true;
+    this[modified] = true;
     database.save();
     return this;
   };
@@ -213,12 +333,12 @@ function Table(tableOptions, database) {
 
   // [x] typechecks?
   // [x] working?
-  this.modified = () => modified;
+  this[modified] = () => modified;
 
   // [x] typechecks?
   // [x] working?
   this[stringify] = () => {
-    modified = false;
+    this[modified] = false;
     JSON.stringify(list);
   };
 }
@@ -242,7 +362,7 @@ function Database(databaseOptions) {
   this.table = (label) => dictionary[label];
 
   const internalSave = list.map(async (table) => {
-    if (table.modified() === true) {
+    if (table[modified] === true) {
       await fs.promises.writeFile(`./tables/${table.label()}.table`, table[stringify]());
       console.log(`${table.label()} : modified`);
       return;
@@ -254,19 +374,19 @@ function Database(databaseOptions) {
   let saveSkips = 0;
   this.save = () => {
     if (saveInterval === undefined) {
-      saveInterval = setInterval(() => {
+      saveInterval = setInterval(async () => {
         if (saveSkipNext === true) {
           saveSkipNext = false;
           if (saveSkips < saveMaxSkips) {
             saveSkips += 1;
           } else {
             saveSkips = 0;
-            internalSave();
+            await internalSave();
             clearInterval(saveInterval);
             saveInterval = undefined;
           }
         } else {
-          internalSave();
+          await internalSave();
           clearInterval(saveInterval);
           saveInterval = undefined;
         }
