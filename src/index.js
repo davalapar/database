@@ -96,7 +96,7 @@ const validItemFieldTypes = [
 
 const validateItem = (method, itemFieldKeys, itemFieldTypes, item) => {
   if (typeof item !== 'object' || item === null) {
-    throw Error('table :: item :: unexpected non-plain object');
+    throw Error('table :: item :: unexpected non-object');
   }
   for (let i = 0, l = itemFieldKeys.length; i < l; i += 1) {
     const itemFieldKey = itemFieldKeys[i];
@@ -195,7 +195,7 @@ function Table(tableOptions, database) {
     throw Error('table :: label :: unexpected non-empty string');
   }
   if (typeof itemSchema !== 'object' || itemSchema === null) {
-    throw Error('table :: itemSchema :: unexpected non-plain object');
+    throw Error('table :: itemSchema :: unexpected non-object');
   }
   if (transformFunction !== undefined && typeof transformFunction !== 'function') {
     throw Error('table :: transformFunction :: unexpected non-function');
