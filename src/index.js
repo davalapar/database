@@ -17,49 +17,49 @@ const Query = {
 
   // [ ] typechecks?
   // [ ] working?
-  ascend: (itemField) => {},
+  ascend: (itemFieldKey) => {},
 
   // [ ] typechecks?
   // [ ] working?
-  descend: (itemField) => {},
+  descend: (itemFieldKey) => {},
 
   // [ ] typechecks?
   // [ ] working?
-  ascendh: (itemField, coordinates) => {},
+  ascendh: (itemFieldKey, coordinates) => {},
 
   // [ ] typechecks?
   // [ ] working?
-  descendh: (itemField, coordinates) => {},
+  descendh: (itemFieldKey, coordinates) => {},
 
   // FILTERS:
 
   // [ ] typechecks?
   // [ ] working?
-  gt: (itemField, value) => {},
+  gt: (itemFieldKey, value) => {},
 
   // [ ] typechecks?
   // [ ] working?
-  gte: (itemField, value) => {},
+  gte: (itemFieldKey, value) => {},
 
   // [ ] typechecks?
   // [ ] working?
-  lt: (itemField, value) => {},
+  lt: (itemFieldKey, value) => {},
 
   // [ ] typechecks?
   // [ ] working?
-  lte: (itemField, value) => {},
+  lte: (itemFieldKey, value) => {},
 
   // [ ] typechecks?
   // [ ] working?
-  eq: (itemField, value) => {},
+  eq: (itemFieldKey, value) => {},
 
   // [ ] typechecks?
   // [ ] working?
-  neq: (itemField, value) => {},
+  neq: (itemFieldKey, value) => {},
 
   // [ ] typechecks?
   // [ ] working?
-  has: (itemField, value) => {},
+  has: (itemFieldKey, value) => {},
 
   // PAGINATE:
 
@@ -280,13 +280,24 @@ function Table(tableOptions, database) {
     return this;
   };
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
-  this.get = (itemId) => dictionary[itemId];
+  this.get = (itemId) => {
+    if (typeof itemId !== 'string') {
+      throw Error(`table :: get :: unexpected non-string id "${itemId}"`);
+    }
+    return dictionary[itemId];
+  };
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   this.delete = (itemId) => {
+    if (typeof itemId !== 'string') {
+      throw Error('table :: delete :: unexpected non-string itemId');
+    }
+    if (dictionary[itemId] === undefined) {
+      throw Error(`table :: delete :: unexpected non-existing id "${itemId}"`);
+    }
     const existingItem = dictionary[itemId];
     const existingItemIndex = list.indexOf(existingItem);
     list.splice(existingItemIndex, 1);
@@ -296,29 +307,58 @@ function Table(tableOptions, database) {
     return this;
   };
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
-  this.increment = (itemId, itemField) => {
+  this.increment = (itemId, itemFieldKey) => {
+    if (typeof itemId !== 'string') {
+      throw Error('table :: increment :: unexpected non-string itemId');
+    }
+    if (dictionary[itemId] === undefined) {
+      throw Error(`table :: increment :: unexpected non-existing id "${itemId}"`);
+    }
+    if (itemFieldKeys.includes(itemFieldKey) === false) {
+      throw Error(`table :: increment :: unexpected field "${itemFieldKey}"`);
+    }
+    if (itemSchema[itemFieldKey] !== 'number') {
+      throw Error(`table :: increment :: unexpected non-number field "${itemFieldKey}"`);
+    }
     const existingItem = dictionary[itemId];
-    existingItem[itemField] += 1;
+    existingItem[itemFieldKey] += 1;
     this[modified] = true;
     database.save();
     return this;
   };
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
-  this.decrement = (itemId, itemField) => {
+  this.decrement = (itemId, itemFieldKey) => {
+    if (typeof itemId !== 'string') {
+      throw Error('table :: decrement :: unexpected non-string itemId');
+    }
+    if (dictionary[itemId] === undefined) {
+      throw Error(`table :: decrement :: unexpected non-existing id "${itemId}"`);
+    }
+    if (itemFieldKeys.includes(itemFieldKey) === false) {
+      throw Error(`table :: decrement :: unexpected field "${itemFieldKey}"`);
+    }
+    if (itemSchema[itemFieldKey] !== 'number') {
+      throw Error(`table :: decrement :: unexpected non-number field "${itemFieldKey}"`);
+    }
     const existingItem = dictionary[itemId];
-    existingItem[itemField] -= 1;
+    existingItem[itemFieldKey] -= 1;
     this[modified] = true;
     database.save();
     return this;
   };
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
-  this.has = (itemId) => dictionary[itemId] !== undefined;
+  this.has = (itemId) => {
+    if (typeof itemId !== 'string') {
+      throw Error(`table :: has :: unexpected non-string id "${itemId}"`);
+    }
+    return dictionary[itemId] !== undefined;
+  };
 
   // [ ] typechecks?
   // [x] working?
