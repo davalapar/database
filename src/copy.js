@@ -1,12 +1,10 @@
 
 /**
  * @param {*} value - value to copy
+ * @returns {*}
  * - Designed for primitive values, plain arrays and plain objects
  * - Not as strict as lodash/isPlainObject
- * - Does not work for:
- * - NaN, +Infinity, -Infinity, BigInt
- * - TypedArray, RegExp, Function, Symbol
- * - Date, Map, Set, Promise, Error
+ * - Not designed for: NaN, +Infinity, -Infinity, BigInt, TypedArray, RegExp, Function, Symbol, Date, Map, Set, Promise, Error
  */
 const copy = (value) => {
   switch (typeof value) {
