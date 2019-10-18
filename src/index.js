@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const copy = require('./copy');
+const stringify = require('./stringify');
 const haversine = require('./haversine');
 
 let queryItemSchema = {};
@@ -15,10 +16,8 @@ let queryPage = 0;
 // sorting a coordinate field requires a third and fourth parameter
 
 const Query = {
-  // SORTS:
 
-  // [x] typechecks?
-  // [x] working?
+  // SORTS:
   ascend: (itemFieldKey) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('ascend :: itemFieldKey :: Unexpected non-string');
@@ -32,9 +31,6 @@ const Query = {
     querySorts.push([itemFieldKey, false]);
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   descend: (itemFieldKey) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('descend :: itemFieldKey :: Unexpected non-string');
@@ -48,9 +44,6 @@ const Query = {
     querySorts.push([itemFieldKey, true]);
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   ascendh: (itemFieldKey, coordinates) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('ascendh :: itemFieldKey :: Unexpected non-string');
@@ -79,9 +72,6 @@ const Query = {
     querySorts.push([itemFieldKey, false, coordinates]);
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   descendh: (itemFieldKey, coordinates) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('descendh :: itemFieldKey :: Unexpected non-string');
@@ -112,9 +102,6 @@ const Query = {
   },
 
   // FILTERS:
-
-  // [x] typechecks?
-  // [x] working?
   gt: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('gt :: itemFieldKey :: Unexpected non-string');
@@ -137,9 +124,6 @@ const Query = {
     queryList = queryList.filter((item) => item[itemFieldKey] > value);
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   gte: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('gte :: itemFieldKey :: Unexpected non-string');
@@ -162,9 +146,6 @@ const Query = {
     queryList = queryList.filter((item) => item[itemFieldKey] >= value);
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   lt: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('lt :: itemFieldKey :: Unexpected non-string');
@@ -187,9 +168,6 @@ const Query = {
     queryList = queryList.filter((item) => item[itemFieldKey] < value);
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   lte: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('lte :: itemFieldKey :: Unexpected non-string');
@@ -212,9 +190,6 @@ const Query = {
     queryList = queryList.filter((item) => item[itemFieldKey] <= value);
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   eq: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('eq :: itemFieldKey :: Unexpected non-string');
@@ -254,9 +229,6 @@ const Query = {
     queryList = queryList.filter((item) => item[itemFieldKey] === value);
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   neq: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('neq :: itemFieldKey :: Unexpected non-string');
@@ -296,9 +268,6 @@ const Query = {
     queryList = queryList.filter((item) => item[itemFieldKey] !== value);
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   has: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
       throw Error('has :: itemFieldKey :: Unexpected non-string');
@@ -340,9 +309,6 @@ const Query = {
   },
 
   // PAGINATE:
-
-  // [x] typechecks?
-  // [x] working?
   limit: (value) => {
     if (typeof value !== 'number') {
       throw Error('limit :: value :: Unexpected non-number value');
@@ -362,9 +328,6 @@ const Query = {
     queryLimit = value;
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   offset: (value) => {
     if (typeof value !== 'number') {
       throw Error('offset :: value :: Unexpected non-number value');
@@ -387,9 +350,6 @@ const Query = {
     queryOffset = value;
     return Query;
   },
-
-  // [x] typechecks?
-  // [x] working?
   page: (value) => {
     if (typeof value !== 'number') {
       throw Error('page :: value :: Unexpected non-number value');
@@ -412,10 +372,8 @@ const Query = {
     queryPage = value;
     return Query;
   },
-  // results:
 
-  // [ ] typechecks?
-  // [ ] working?
+  // RESULTS:
   results: () => {
     if (querySorts.length > 1) {
       queryList.sort((a, b) => {
@@ -459,7 +417,7 @@ const Query = {
 };
 
 const modified = Symbol('modified');
-const stringify = Symbol('stringify');
+const stringifyFn = Symbol('stringifyFn');
 
 const validItemFieldTypes = [
   'boolean',
@@ -597,7 +555,7 @@ function Table(tableOptions, database) {
   const [itemFieldKeys, itemSchema] = validateSchema(tableOptions.itemSchema);
 
   // validate schema
-  const itemFieldsStringified = JSON.stringify(itemFieldKeys);
+  const itemFieldsStringified = stringify(itemFieldKeys);
 
   // load items
 
@@ -757,7 +715,7 @@ function Table(tableOptions, database) {
 
   // [x] typechecks?
   // [x] working?
-  this[stringify] = () => {
+  this[stringifyFn] = () => {
     this[modified] = false;
     JSON.stringify(list);
   };
@@ -783,7 +741,7 @@ function Database(databaseOptions) {
 
   const internalSave = list.map(async (table) => {
     if (table[modified] === true) {
-      await fs.promises.writeFile(`./tables/${table.label()}.table`, table[stringify]());
+      await fs.promises.writeFile(`./tables/${table.label()}.table`, table[stringifyFn]());
       console.log(`${table.label()} : modified`);
       return;
     }
