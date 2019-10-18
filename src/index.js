@@ -116,6 +116,24 @@ const Query = {
   // [ ] typechecks?
   // [x] working?
   gt: (itemFieldKey, value) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('gt :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('gt :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (queryItemSchema[itemFieldKey] !== 'number') {
+      throw Error('gt :: itemFieldKey :: Unexpected non-string and non-number field');
+    }
+    if (typeof value !== 'number') {
+      throw Error('gt :: value :: Unexpected non-number value');
+    }
+    if (Number.isNaN(value) === true) {
+      throw Error('gt :: value :: Unexpected NaN value');
+    }
+    if (Number.isFinite(value) === false) {
+      throw Error('gt :: value :: Unexpected non-finite value');
+    }
     queryList = queryList.filter((item) => item[itemFieldKey] > value);
     return Query;
   },
@@ -123,6 +141,24 @@ const Query = {
   // [ ] typechecks?
   // [x] working?
   gte: (itemFieldKey, value) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('gte :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('gte :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (queryItemSchema[itemFieldKey] !== 'number') {
+      throw Error('gte :: itemFieldKey :: Unexpected non-string and non-number field');
+    }
+    if (typeof value !== 'number') {
+      throw Error('gte :: value :: Unexpected non-number value');
+    }
+    if (Number.isNaN(value) === true) {
+      throw Error('gte :: value :: Unexpected NaN value');
+    }
+    if (Number.isFinite(value) === false) {
+      throw Error('gte :: value :: Unexpected non-finite value');
+    }
     queryList = queryList.filter((item) => item[itemFieldKey] >= value);
     return Query;
   },
@@ -130,6 +166,24 @@ const Query = {
   // [ ] typechecks?
   // [x] working?
   lt: (itemFieldKey, value) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('lt :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('lt :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (queryItemSchema[itemFieldKey] !== 'number') {
+      throw Error('lt :: itemFieldKey :: Unexpected non-string and non-number field');
+    }
+    if (typeof value !== 'number') {
+      throw Error('lt :: value :: Unexpected non-number value');
+    }
+    if (Number.isNaN(value) === true) {
+      throw Error('lt :: value :: Unexpected NaN value');
+    }
+    if (Number.isFinite(value) === false) {
+      throw Error('lt :: value :: Unexpected non-finite value');
+    }
     queryList = queryList.filter((item) => item[itemFieldKey] < value);
     return Query;
   },
@@ -137,6 +191,24 @@ const Query = {
   // [ ] typechecks?
   // [x] working?
   lte: (itemFieldKey, value) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('lte :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('lte :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (queryItemSchema[itemFieldKey] !== 'number') {
+      throw Error('lte :: itemFieldKey :: Unexpected non-string and non-number field');
+    }
+    if (typeof value !== 'number') {
+      throw Error('lte :: value :: Unexpected non-number value');
+    }
+    if (Number.isNaN(value) === true) {
+      throw Error('lte :: value :: Unexpected NaN value');
+    }
+    if (Number.isFinite(value) === false) {
+      throw Error('lte :: value :: Unexpected non-finite value');
+    }
     queryList = queryList.filter((item) => item[itemFieldKey] <= value);
     return Query;
   },
@@ -144,6 +216,41 @@ const Query = {
   // [ ] typechecks?
   // [x] working?
   eq: (itemFieldKey, value) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('eq :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('eq :: itemFieldKey :: Unexpected non-existing field');
+    }
+    switch (queryItemSchema[itemFieldKey]) {
+      case 'boolean': {
+        if (typeof value !== 'boolean') {
+          throw Error('eq :: value :: Unexpected non-boolean value');
+        }
+        break;
+      }
+      case 'string': {
+        if (typeof value !== 'string') {
+          throw Error('eq :: value :: Unexpected non-string value');
+        }
+        break;
+      }
+      case 'number': {
+        if (typeof value !== 'number') {
+          throw Error('eq :: value :: Unexpected non-number value');
+        }
+        if (Number.isNaN(value) === true) {
+          throw Error('eq :: value :: Unexpected NaN value');
+        }
+        if (Number.isFinite(value) === false) {
+          throw Error('eq :: value :: Unexpected non-finite value');
+        }
+        break;
+      }
+      default: {
+        throw Error('eq :: itemFieldKey :: Unexpected non-string, non-number, and non-boolean field');
+      }
+    }
     queryList = queryList.filter((item) => item[itemFieldKey] === value);
     return Query;
   },
@@ -151,6 +258,41 @@ const Query = {
   // [ ] typechecks?
   // [x] working?
   neq: (itemFieldKey, value) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('neq :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('neq :: itemFieldKey :: Unexpected non-existing field');
+    }
+    switch (queryItemSchema[itemFieldKey]) {
+      case 'boolean': {
+        if (typeof value !== 'boolean') {
+          throw Error('neq :: value :: Unexpected non-boolean value');
+        }
+        break;
+      }
+      case 'string': {
+        if (typeof value !== 'string') {
+          throw Error('neq :: value :: Unexpected non-string value');
+        }
+        break;
+      }
+      case 'number': {
+        if (typeof value !== 'number') {
+          throw Error('neq :: value :: Unexpected non-number value');
+        }
+        if (Number.isNaN(value) === true) {
+          throw Error('neq :: value :: Unexpected NaN value');
+        }
+        if (Number.isFinite(value) === false) {
+          throw Error('neq :: value :: Unexpected non-finite value');
+        }
+        break;
+      }
+      default: {
+        throw Error('neq :: itemFieldKey :: Unexpected non-string, non-number, and non-boolean field');
+      }
+    }
     queryList = queryList.filter((item) => item[itemFieldKey] !== value);
     return Query;
   },
@@ -158,6 +300,41 @@ const Query = {
   // [ ] typechecks?
   // [x] working?
   has: (itemFieldKey, value) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('has :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('has :: itemFieldKey :: Unexpected non-existing field');
+    }
+    switch (queryItemSchema[itemFieldKey]) {
+      case 'booleans': {
+        if (typeof value !== 'boolean') {
+          throw Error('has :: value :: Unexpected non-boolean value');
+        }
+        break;
+      }
+      case 'strings': {
+        if (typeof value !== 'string') {
+          throw Error('has :: value :: Unexpected non-string value');
+        }
+        break;
+      }
+      case 'numbers': {
+        if (typeof value !== 'number') {
+          throw Error('has :: value :: Unexpected non-number value');
+        }
+        if (Number.isNaN(value) === true) {
+          throw Error('has :: value :: Unexpected NaN value');
+        }
+        if (Number.isFinite(value) === false) {
+          throw Error('has :: value :: Unexpected non-finite value');
+        }
+        break;
+      }
+      default: {
+        throw Error('has :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+      }
+    }
     queryList = queryList.filter((item) => item[itemFieldKey].includes(value));
     return Query;
   },
@@ -167,6 +344,18 @@ const Query = {
   // [ ] typechecks?
   // [x] working?
   limit: (value) => {
+    if (typeof value !== 'number') {
+      throw Error('limit :: value :: Unexpected non-number value');
+    }
+    if (Number.isNaN(value) === true) {
+      throw Error('limit :: value :: Unexpected NaN value');
+    }
+    if (Number.isFinite(value) === false) {
+      throw Error('limit :: value :: Unexpected non-finite value');
+    }
+    if (Math.floor(value) !== value) {
+      throw Error('limit :: value :: Unexpected non-integer value');
+    }
     queryLimit = value;
     return Query;
   },
@@ -174,6 +363,18 @@ const Query = {
   // [ ] typechecks?
   // [x] working?
   offset: (value) => {
+    if (typeof value !== 'number') {
+      throw Error('offset :: value :: Unexpected non-number value');
+    }
+    if (Number.isNaN(value) === true) {
+      throw Error('offset :: value :: Unexpected NaN value');
+    }
+    if (Number.isFinite(value) === false) {
+      throw Error('offset :: value :: Unexpected non-finite value');
+    }
+    if (Math.floor(value) !== value) {
+      throw Error('offset :: value :: Unexpected non-integer value');
+    }
     queryOffset = value;
     return Query;
   },
@@ -181,6 +382,18 @@ const Query = {
   // [ ] typechecks?
   // [x] working?
   page: (value) => {
+    if (typeof value !== 'number') {
+      throw Error('page :: value :: Unexpected non-number value');
+    }
+    if (Number.isNaN(value) === true) {
+      throw Error('page :: value :: Unexpected NaN value');
+    }
+    if (Number.isFinite(value) === false) {
+      throw Error('page :: value :: Unexpected non-finite value');
+    }
+    if (Math.floor(value) !== value) {
+      throw Error('page :: value :: Unexpected non-integer value');
+    }
     queryPage = value;
     return Query;
   },
