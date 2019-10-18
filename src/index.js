@@ -113,7 +113,7 @@ const Query = {
 
   // FILTERS:
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   gt: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
@@ -138,7 +138,7 @@ const Query = {
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   gte: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
@@ -163,7 +163,7 @@ const Query = {
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   lt: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
@@ -188,7 +188,7 @@ const Query = {
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   lte: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
@@ -213,7 +213,7 @@ const Query = {
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   eq: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
@@ -255,7 +255,7 @@ const Query = {
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   neq: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
@@ -297,7 +297,7 @@ const Query = {
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   has: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
@@ -341,7 +341,7 @@ const Query = {
 
   // PAGINATE:
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   limit: (value) => {
     if (typeof value !== 'number') {
@@ -356,11 +356,14 @@ const Query = {
     if (Math.floor(value) !== value) {
       throw Error('limit :: value :: Unexpected non-integer value');
     }
+    if (value <= 0) {
+      throw Error('limit :: value :: Unexpected less-than-zero value');
+    }
     queryLimit = value;
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   offset: (value) => {
     if (typeof value !== 'number') {
@@ -375,11 +378,17 @@ const Query = {
     if (Math.floor(value) !== value) {
       throw Error('offset :: value :: Unexpected non-integer value');
     }
+    if (value <= 0) {
+      throw Error('offset :: value :: Unexpected less-than-zero value');
+    }
+    if (queryPage !== 0) {
+      throw Error('offset :: cannot use offset() with page()');
+    }
     queryOffset = value;
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   page: (value) => {
     if (typeof value !== 'number') {
@@ -393,6 +402,12 @@ const Query = {
     }
     if (Math.floor(value) !== value) {
       throw Error('page :: value :: Unexpected non-integer value');
+    }
+    if (value <= 0) {
+      throw Error('page :: value :: Unexpected less-than-zero value');
+    }
+    if (queryOffset !== 0) {
+      throw Error('page :: cannot use page() with offset()');
     }
     queryPage = value;
     return Query;
