@@ -1,30 +1,31 @@
 /* eslint-disable prefer-template */
 
+// for fuck's sake don't use this on circular objects
+
 const stringify = (value) => {
   switch (typeof value) {
     case 'object': {
       if (value === null) {
         throw Error('stringify :: unexpected null');
       }
-      let x = '';
       if (Array.isArray(value) === true) {
-        x += '[';
-        for (let i = 0, l = value.length; i < l; i += 1) {
+        let x = '[';
+        for (let i = 0, l = value.length, y = value.length - 1; i < l; i += 1) {
           x += stringify(value[i]);
-          if (i < l - 1) {
+          if (i < y) {
             x += ',';
           }
         }
         x += ']';
         return x;
       }
-      x += '{';
+      let x = '{';
       const keys = Object.keys(value);
-      for (let i = 0, l = keys.length; i < l; i += 1) {
+      for (let i = 0, l = keys.length, y = value.length - 1; i < l; i += 1) {
         x += stringify(keys[i]);
         x += ':';
         x += stringify(value[keys[i]]);
-        if (i < l - 1) {
+        if (i < y) {
           x += ',';
         }
       }

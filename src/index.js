@@ -739,38 +739,62 @@ function Database(databaseOptions) {
   // [x] working?
   this.table = (label) => dictionary[label];
 
-  const internalSave = list.map(async (table) => {
-    if (table[modified] === true) {
-      await fs.promises.writeFile(`./tables/${table.label()}.table`, table[stringifyFn]());
-      console.log(`${table.label()} : modified`);
-      return;
-    }
-    console.log(`${table.label()} : not modified`);
-  });
   let saveInterval;
   let saveSkipNext = false;
   let saveSkips = 0;
+  let saveIsSaving = false;
+  let saveQueued = false;
+  const internalSave = async () => {
+    const tables = list.filter((table) => table[modified] === true);
+    const data = list.map((table) => table[stringifyFn]());
+    saveIsSaving = true;
+    await tables.map((table, index) => fs.promises.writeFile(`./tables/${table.label()}.table`, data[index]));
+    saveIsSaving = false;
+  };
   this.save = () => {
+    if (saveIsSaving === true) {
+      saveQueued = true;
+      console.log('save : currently saving, queueing save');
+      return;
+    }
     if (saveInterval === undefined) {
       saveInterval = setInterval(async () => {
-        if (saveSkipNext === true) {
-          saveSkipNext = false;
-          if (saveSkips < saveMaxSkips) {
-            saveSkips += 1;
+        const tid = (Math.random() * 10000).floor().toString().padStart(4, '0');
+        if (saveIsSaving === false) {
+          if (saveSkipNext === true) {
+            saveSkipNext = false;
+            if (saveSkips < saveMaxSkips) {
+              saveSkips += 1;
+              console.log(tid, 'save tick : save skipped');
+            } else {
+              saveSkips = 0;
+              console.log(tid, 'save tick : saving');
+              await internalSave();
+              console.log(tid, 'save tick : save ok');
+              if (saveQueued === false) {
+                console.log(tid, 'save tick : save tick cleared');
+                clearInterval(saveInterval);
+                saveInterval = undefined;
+              }
+            }
           } else {
-            saveSkips = 0;
+            console.log(tid, 'save tick : saving');
             await internalSave();
-            clearInterval(saveInterval);
-            saveInterval = undefined;
+            console.log(tid, 'save tick : save ok');
+            if (saveQueued === false) {
+              console.log(tid, 'save tick : save tick cleared');
+              clearInterval(saveInterval);
+              saveInterval = undefined;
+            }
           }
         } else {
-          await internalSave();
-          clearInterval(saveInterval);
-          saveInterval = undefined;
+          console.log(tid, 'save tick : currently saving, doing nothing');
         }
       }, saveCheckInterval);
+      console.log('save : creating save tick');
     } else {
       saveSkipNext = true;
+      console.log('save : save tick exists, skipping save on next tick');
     }
   };
 }
