@@ -17,30 +17,96 @@ let queryPage = 0;
 const Query = {
   // SORTS:
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   ascend: (itemFieldKey) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('ascend :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('ascend :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (queryItemSchema[itemFieldKey] !== 'string' && queryItemSchema[itemFieldKey] !== 'number') {
+      throw Error('ascend :: itemFieldKey :: Unexpected non-string and non-number field');
+    }
     querySorts.push([itemFieldKey, false]);
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   descend: (itemFieldKey) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('descend :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('descend :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (queryItemSchema[itemFieldKey] !== 'string' && queryItemSchema[itemFieldKey] !== 'number') {
+      throw Error('descend :: itemFieldKey :: Unexpected non-string and non-number field');
+    }
     querySorts.push([itemFieldKey, true]);
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   ascendh: (itemFieldKey, coordinates) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('ascendh :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('ascendh :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (queryItemSchema[itemFieldKey] !== 'coordinates') {
+      throw Error('ascendh :: coordinates :: Unexpected non-coordinates field');
+    }
+    if (Array.isArray(coordinates) === false) {
+      throw Error('ascendh :: coordinates :: Unexpected non-array coordinates');
+    }
+    if (coordinates.every((value) => typeof value === 'number') === false) {
+      throw Error('ascendh :: coordinates :: Unexpected non-number in coordinates');
+    }
+    if (coordinates.every((value) => Number.isNaN(value) === false) === false) {
+      throw Error('ascendh :: coordinates :: Unexpected NaN in coordinates');
+    }
+    if (coordinates.every((value) => Number.isFinite(value) === true) === false) {
+      throw Error('ascendh :: coordinates :: Unexpected non-finite in coordinates');
+    }
+    if (coordinates.length !== 2) {
+      throw Error('ascendh :: coordinates :: Unexpected non-2 length for coordinates');
+    }
     querySorts.push([itemFieldKey, false, coordinates]);
     return Query;
   },
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
   descendh: (itemFieldKey, coordinates) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('descendh :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('descendh :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (queryItemSchema[itemFieldKey] !== 'coordinates') {
+      throw Error('descendh :: coordinates :: Unexpected non-coordinates field');
+    }
+    if (Array.isArray(coordinates) === false) {
+      throw Error('descendh :: coordinates :: Unexpected non-array coordinates');
+    }
+    if (coordinates.every((value) => typeof value === 'number') === false) {
+      throw Error('descendh :: coordinates :: Unexpected non-number in coordinates');
+    }
+    if (coordinates.every((value) => Number.isNaN(value) === false) === false) {
+      throw Error('descendh :: coordinates :: Unexpected NaN in coordinates');
+    }
+    if (coordinates.every((value) => Number.isFinite(value) === true) === false) {
+      throw Error('descendh :: coordinates :: Unexpected non-finite in coordinates');
+    }
+    if (coordinates.length !== 2) {
+      throw Error('descendh :: coordinates :: Unexpected non-2 length for coordinates');
+    }
     querySorts.push([itemFieldKey, true, coordinates]);
     return Query;
   },
