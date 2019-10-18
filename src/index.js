@@ -4,11 +4,12 @@ const crypto = require('crypto');
 const fs = require('fs');
 const copy = require('./copy');
 
-let internalQuerylist = [];
-let internalQuerySorts = [];
-let internalQueryLimit = Infinity;
-let internalQueryOffset = 0;
-let internalQueryPage = 0;
+let queryItemSchema = {};
+let queryList = [];
+let querySorts = [];
+let queryLimit = Infinity;
+let queryOffset = 0;
+let queryPage = 0;
 
 // sorting a coordinate field requires a third and fourth parameter
 
@@ -16,69 +17,141 @@ const Query = {
   // SORTS:
 
   // [ ] typechecks?
-  // [ ] working?
-  ascend: (itemFieldKey) => {},
+  // [x] working?
+  ascend: (itemFieldKey) => {
+    querySorts.push([itemFieldKey, false]);
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  descend: (itemFieldKey) => {},
+  // [x] working?
+  descend: (itemFieldKey) => {
+    querySorts.push([itemFieldKey, true]);
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  ascendh: (itemFieldKey, coordinates) => {},
+  // [x] working?
+  ascendh: (itemFieldKey, coordinates) => {
+    querySorts.push([itemFieldKey, false, coordinates]);
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  descendh: (itemFieldKey, coordinates) => {},
+  // [x] working?
+  descendh: (itemFieldKey, coordinates) => {
+    querySorts.push([itemFieldKey, true, coordinates]);
+    return Query;
+  },
 
   // FILTERS:
 
   // [ ] typechecks?
-  // [ ] working?
-  gt: (itemFieldKey, value) => {},
+  // [x] working?
+  gt: (itemFieldKey, value) => {
+    queryList = queryList.filter((item) => item[itemFieldKey] > value);
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  gte: (itemFieldKey, value) => {},
+  // [x] working?
+  gte: (itemFieldKey, value) => {
+    queryList = queryList.filter((item) => item[itemFieldKey] >= value);
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  lt: (itemFieldKey, value) => {},
+  // [x] working?
+  lt: (itemFieldKey, value) => {
+    queryList = queryList.filter((item) => item[itemFieldKey] < value);
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  lte: (itemFieldKey, value) => {},
+  // [x] working?
+  lte: (itemFieldKey, value) => {
+    queryList = queryList.filter((item) => item[itemFieldKey] <= value);
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  eq: (itemFieldKey, value) => {},
+  // [x] working?
+  eq: (itemFieldKey, value) => {
+    queryList = queryList.filter((item) => item[itemFieldKey] === value);
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  neq: (itemFieldKey, value) => {},
+  // [x] working?
+  neq: (itemFieldKey, value) => {
+    queryList = queryList.filter((item) => item[itemFieldKey] !== value);
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  has: (itemFieldKey, value) => {},
+  // [x] working?
+  has: (itemFieldKey, value) => {
+    queryList = queryList.filter((item) => item[itemFieldKey].includes(value));
+    return Query;
+  },
 
   // PAGINATE:
 
   // [ ] typechecks?
-  // [ ] working?
-  limit: (value) => {},
+  // [x] working?
+  limit: (value) => {
+    queryLimit = value;
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  offset: (value) => {},
+  // [x] working?
+  offset: (value) => {
+    queryOffset = value;
+    return Query;
+  },
 
   // [ ] typechecks?
-  // [ ] working?
-  page: (value) => {},
+  // [x] working?
+  page: (value) => {
+    queryPage = value;
+    return Query;
+  },
   // results:
 
   // [ ] typechecks?
   // [ ] working?
-  results: () => {},
+  results: () => {
+    if (querySorts.length > 1) {
+      queryList.sort((a, b) => {
+        for (let i = 0, l = querySorts.length; i < l; i += 1) {
+          const querySort = querySorts[i];
+          const [itemFieldKey, descend, coordinates] = querySort;
+          if (coordinates === undefined) {
+            if (a[itemFieldKey] === b[itemFieldKey]) {
+              continue; // eslint-disable-line no-continue
+            }
+            if (queryItemSchema[itemFieldKey] === 'string') {
+              return descend ? b[itemFieldKey].localeCompare(a[itemFieldKey]) : a[itemFieldKey].localeCompare(b[itemFieldKey]);
+            }
+            if (queryItemSchema[itemFieldKey] === 'number') {
+              return descend ? b[itemFieldKey] - a[itemFieldKey] : a[itemFieldKey] - b[itemFieldKey];
+            }
+          } else {
+            const [lat, long] = coordinates;
+          }
+        }
+        return 0;
+      });
+    }
+    if (queryOffset > 0) {
+      queryList = queryList.slice(queryOffset, queryOffset + queryLimit);
+    } else if (queryPage > 0) {
+      queryList = queryList.slice(queryLimit * (queryPage - 1), (queryLimit * (queryPage - 1)) + queryLimit);
+    } else {
+      queryList = queryList.slice(0, queryLimit);
+    }
+  },
 };
 
 const modified = Symbol('modified');
@@ -94,25 +167,25 @@ const validItemFieldTypes = [
   'coordinates',
 ];
 
-const validateItem = (method, itemFieldKeys, itemFieldTypes, item) => {
+const validateItem = (method, itemFieldKeys, itemSchema, item) => {
   if (typeof item !== 'object' || item === null) {
     throw Error('table :: item :: unexpected non-object');
   }
   for (let i = 0, l = itemFieldKeys.length; i < l; i += 1) {
     const itemFieldKey = itemFieldKeys[i];
-    const itemFieldType = itemFieldTypes[i];
+    const itemFieldType = itemSchema[itemFieldKey];
     switch (itemFieldType) {
       case 'boolean': {
         if (typeof item[itemFieldKey] !== 'boolean') {
           throw Error(`table :: ${method} :: unexpected non-boolean value for "${itemFieldKey}" field`);
         }
-        return;
+        break;
       }
       case 'string': {
         if (typeof item[itemFieldKey] !== 'string') {
           throw Error(`table :: ${method} :: unexpected non-string value for "${itemFieldKey}" field`);
         }
-        return;
+        break;
       }
       case 'number': {
         if (typeof item[itemFieldKey] !== 'number') {
@@ -124,7 +197,7 @@ const validateItem = (method, itemFieldKeys, itemFieldTypes, item) => {
         if (Number.isFinite(item[itemFieldKey]) === false) {
           throw Error(`table :: ${method} :: unexpected non-finite value for "${itemFieldKey}" field`);
         }
-        return;
+        break;
       }
       case 'booleans': {
         if (Array.isArray(item[itemFieldKey]) === false) {
@@ -133,7 +206,7 @@ const validateItem = (method, itemFieldKeys, itemFieldTypes, item) => {
         if (item[itemFieldKey].every((value) => typeof value === 'boolean') === false) {
           throw Error(`table :: ${method} :: unexpected non-boolean value in "${itemFieldKey}" array field`);
         }
-        return;
+        break;
       }
       case 'strings': {
         if (Array.isArray(item[itemFieldKey]) === false) {
@@ -142,7 +215,7 @@ const validateItem = (method, itemFieldKeys, itemFieldTypes, item) => {
         if (item[itemFieldKey].every((value) => typeof value === 'string') === false) {
           throw Error(`table :: ${method} :: unexpected non-string value in "${itemFieldKey}" array field`);
         }
-        return;
+        break;
       }
       case 'numbers': {
         if (Array.isArray(item[itemFieldKey]) === false) {
@@ -157,7 +230,7 @@ const validateItem = (method, itemFieldKeys, itemFieldTypes, item) => {
         if (item[itemFieldKey].every((value) => Number.isFinite(value) === true) === false) {
           throw Error(`table :: ${method} :: unexpected non-finite value in "${itemFieldKey}" array field`);
         }
-        return;
+        break;
       }
       case 'coordinates': {
         if (Array.isArray(item[itemFieldKey]) === false) {
@@ -175,27 +248,39 @@ const validateItem = (method, itemFieldKeys, itemFieldTypes, item) => {
         if (item[itemFieldKey].length !== 2) {
           throw Error(`table :: ${method} :: unexpected array length for "${itemFieldKey}" field`);
         }
-        return;
+        break;
       }
       default: {
-        return;
+        break;
       }
     }
   }
 };
 
-function Table(tableOptions, database) {
-  const {
-    label,
-    itemSchema,
-    transformFunction,
-  } = tableOptions;
+const validateSchema = (itemSchema) => {
+  if (typeof itemSchema !== 'object' || itemSchema === null) {
+    throw Error('table :: validateSchema :: unexpected non-object');
+  }
+  const itemFieldKeys = ['id', ...Object.keys(itemSchema).sort((a, b) => a.localeCompare(b))];
+  for (let i = 0, l = itemFieldKeys.length; i < l; i += 1) {
+    const itemFieldKey = itemFieldKeys[i];
+    if (itemFieldKey === 'id') {
+      continue; // eslint-disable-line no-continue
+    }
+    const itemFieldType = itemSchema[itemFieldKey];
+    if (validItemFieldTypes.includes(itemFieldType) === false) {
+      throw Error('table :: validateSchema :: unexpected field type');
+    }
+  }
+  const itemSchemaCopy = copy(itemSchema);
+  itemSchemaCopy.id = 'string';
+  return [itemFieldKeys, itemSchemaCopy];
+};
 
+function Table(tableOptions, database) {
+  const { label, transformFunction } = tableOptions;
   if (typeof label !== 'string' || label === '') {
     throw Error('table :: label :: unexpected non-empty string');
-  }
-  if (typeof itemSchema !== 'object' || itemSchema === null) {
-    throw Error('table :: itemSchema :: unexpected non-object');
   }
   if (transformFunction !== undefined && typeof transformFunction !== 'function') {
     throw Error('table :: transformFunction :: unexpected non-function');
@@ -205,20 +290,10 @@ function Table(tableOptions, database) {
   let list = [];
   let dictionary = {};
 
+  const [itemFieldKeys, itemSchema] = validateSchema(tableOptions.itemSchema);
+
   // validate schema
-  const itemFieldKeys = ['id', ...Object.keys(itemSchema).sort((a, b) => a.localeCompare(b))];
   const itemFieldsStringified = JSON.stringify(itemFieldKeys);
-  for (let i = 0, l = itemFieldKeys.length; i < l; i += 1) {
-    const itemFieldKey = itemFieldKeys[i];
-    if (itemFieldKey === 'id') {
-      continue; // eslint-disable-line no-continue
-    }
-    const itemFieldType = itemSchema[itemFieldKey];
-    if (validItemFieldTypes.includes(itemFieldType) === false) {
-      throw Error('table :: transformFunction :: unexpected field type');
-    }
-  }
-  const itemFieldTypes = itemFieldKeys.map((itemFieldKey) => itemSchema[itemFieldKey] || 'string');
 
   // load items
 
@@ -249,7 +324,7 @@ function Table(tableOptions, database) {
   // [x] typechecks?
   // [x] working?
   this.add = (newItem) => {
-    validateItem('add', itemFieldKeys, itemFieldTypes, newItem);
+    validateItem('add', itemFieldKeys, itemSchema, newItem);
     const { id } = newItem;
     if (dictionary[id] !== undefined) {
       throw Error(`table :: add :: unexpected existing id "${id}"`);
@@ -265,7 +340,7 @@ function Table(tableOptions, database) {
   // [x] typechecks?
   // [x] working?
   this.update = (updatedItem) => {
-    validateItem('update', itemFieldKeys, itemFieldTypes, updatedItem);
+    validateItem('update', itemFieldKeys, itemSchema, updatedItem);
     const { id } = updatedItem;
     if (dictionary[id] === undefined) {
       throw Error(`table :: update :: unexpected non-existing id "${id}"`);
@@ -363,11 +438,12 @@ function Table(tableOptions, database) {
   // [ ] typechecks?
   // [x] working?
   this.query = () => {
-    internalQuerylist = [];
-    internalQuerySorts = [];
-    internalQueryLimit = Infinity;
-    internalQueryOffset = 0;
-    internalQueryPage = 0;
+    queryItemSchema = itemSchema;
+    queryList = [];
+    querySorts = [];
+    queryLimit = Infinity;
+    queryOffset = 0;
+    queryPage = 0;
     return Query;
   };
 
