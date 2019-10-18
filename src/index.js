@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const copy = require('./copy');
+const haversine = require('./haversine');
 
 let queryItemSchema = {};
 let queryList = [];
@@ -128,17 +129,25 @@ const Query = {
           const querySort = querySorts[i];
           const [itemFieldKey, descend, coordinates] = querySort;
           if (coordinates === undefined) {
+            // type: string or number
             if (a[itemFieldKey] === b[itemFieldKey]) {
               continue; // eslint-disable-line no-continue
             }
             if (queryItemSchema[itemFieldKey] === 'string') {
-              return descend ? b[itemFieldKey].localeCompare(a[itemFieldKey]) : a[itemFieldKey].localeCompare(b[itemFieldKey]);
+              return descend
+                ? b[itemFieldKey].localeCompare(a[itemFieldKey])
+                : a[itemFieldKey].localeCompare(b[itemFieldKey]);
             }
             if (queryItemSchema[itemFieldKey] === 'number') {
-              return descend ? b[itemFieldKey] - a[itemFieldKey] : a[itemFieldKey] - b[itemFieldKey];
+              return descend
+                ? b[itemFieldKey] - a[itemFieldKey]
+                : a[itemFieldKey] - b[itemFieldKey];
             }
           } else {
-            const [lat, long] = coordinates;
+            // type: coordinates
+            return descend
+              ? haversine(coordinates[0], coordinates[1], b[itemFieldKey][0], b[itemFieldKey][1]) - haversine(coordinates[0], coordinates[1], a[itemFieldKey][0], a[itemFieldKey][1])
+              : haversine(coordinates[0], coordinates[1], a[itemFieldKey][0], a[itemFieldKey][1]) - haversine(coordinates[0], coordinates[1], b[itemFieldKey][0], b[itemFieldKey][1]);
           }
         }
         return 0;
@@ -151,6 +160,7 @@ const Query = {
     } else {
       queryList = queryList.slice(0, queryLimit);
     }
+    return copy(queryList);
   },
 };
 
