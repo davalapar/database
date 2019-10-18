@@ -739,11 +739,7 @@ function Database(databaseOptions) {
   // [x] working?
   this.table = (label) => dictionary[label];
 
-  let saveInterval;
-  let saveSkipNext = false;
-  let saveSkips = 0;
   let saveIsSaving = false;
-  let saveQueued = false;
   const internalSave = async () => {
     const tables = list.filter((table) => table[modified] === true);
     const data = list.map((table) => table[stringifyFn]());
@@ -751,6 +747,11 @@ function Database(databaseOptions) {
     await tables.map((table, index) => fs.promises.writeFile(`./tables/${table.label()}.table`, data[index]));
     saveIsSaving = false;
   };
+
+  let saveInterval;
+  let saveSkipNext = false;
+  let saveSkips = 0;
+  let saveQueued = false;
   this.save = () => {
     if (saveIsSaving === true) {
       saveQueued = true;
