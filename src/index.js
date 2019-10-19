@@ -2,6 +2,8 @@
 
 const crypto = require('crypto');
 const fs = require('fs');
+const zlib = require('zlib');
+const util = require('util');
 const copy = require('./copy');
 const stringify = require('./stringify');
 const haversine = require('./haversine');
@@ -530,7 +532,9 @@ const Query = {
 };
 
 const modified = Symbol('modified');
-const stringifyFn = Symbol('stringifyFn');
+const listPointer = Symbol('listPointer');
+const encodeFn = Symbol('encodeFn');
+const decodeFn = Symbol('decodeFn');
 
 const validItemFieldTypes = [
   'boolean',
@@ -652,25 +656,21 @@ const validateSchema = (itemSchema) => {
   return [itemFieldKeys, itemSchemaCopy];
 };
 
-function Table(tableOptions, database) {
-  const { label, transformFunction } = tableOptions;
-  if (typeof label !== 'string' || label === '') {
-    throw Error('table :: label :: unexpected non-empty string');
-  }
-  if (transformFunction !== undefined && typeof transformFunction !== 'function') {
-    throw Error('table :: transformFunction :: unexpected non-function');
-  }
-
-  this[modified] = false;
+function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
   let list = [];
   let dictionary = {};
-
-  const [itemFieldKeys, itemSchema] = validateSchema(tableOptions.itemSchema);
-
-  // validate schema
-  const itemFieldsStringified = stringify(itemFieldKeys);
+  this[modified] = false;
+  this[listPointer] = list;
 
   // load items
+  const oldPath = `./tables/${label}-old.db`;
+  const tempPath = `./tables/${label}-temp.db`;
+  const currentPath = `./tables/${label}-current.db`;
+  const itemFieldsStringified = stringify(itemFieldKeys);
+  if (fs.existsSync(currentPath) === true) {
+    const encoded = fs.readFileSync(currentPath);
+  }
+
 
   // [x] typechecks?
   // [x] working?
@@ -692,6 +692,7 @@ function Table(tableOptions, database) {
     list = [];
     dictionary = {};
     this[modified] = true;
+    this[listPointer] = list;
     database.save();
     return this;
   };
@@ -825,25 +826,60 @@ function Table(tableOptions, database) {
   // [x] typechecks?
   // [x] working?
   this[modified] = () => modified;
-
-  // [x] typechecks?
-  // [x] working?
-  this[stringifyFn] = () => {
-    this[modified] = false;
-    JSON.stringify(list);
-  };
 }
 
 function Database(databaseOptions) {
+  // type checks
+  if (typeof databaseOptions !== 'object' || databaseOptions === null) {
+    throw Error('table :: databaseOptions :: unexpected non-object databaseOptions');
+  }
+
   const {
-    tableOptions,
-    saveCheckInterval,
-    saveMaxSkips,
+    tableConfigs,
+    saveCheckInterval, // pending type-check
+    saveMaxSkips, // pending type-check
+    saveUseCompression, // pending type-check
   } = databaseOptions;
+
+  // more type checks
+  if (Array.isArray(tableConfigs) === false) {
+    throw Error('table :: tableConfigs :: unexpected non-array tableConfigs');
+  }
+  if (tableConfigs.every((tableConfig) => typeof tableConfig !== 'object' || tableConfig === null) === false) {
+    throw Error('table :: tableConfigs :: unexpected non-object tableConfig in tableConfigs');
+  }
+  if (typeof saveUseCompression !== 'undefined' && typeof saveUseCompression !== 'boolean') {
+    throw Error('table :: saveUseCompression :: unexpected non-boolean saveUseCompression');
+  }
+
+  // set encoderFn and decoderFn
+  if (saveUseCompression === true) {
+    const asyncGzip = util.promisify(zlib.gzip);
+    const asyncGunzip = util.promisify(zlib.gunzip);
+    this[encodeFn] = (decoded) => asyncGzip(JSON.stringify(decoded));
+    this[decodeFn] = (encoded) => asyncGunzip(encoded).then(JSON.parse);
+  } else {
+    this[encodeFn] = (decoded) => JSON.stringify(decoded);
+    this[decodeFn] = (encoded) => JSON.parse(encoded);
+  }
+
+  if (fs.existsSync('./tables') === false) {
+    fs.mkdirSync('./tables', { recursive: true });
+    console.log('table :: "./tables" directory created.');
+  }
+
   const list = [];
   const dictionary = {};
-  for (let i = 0, l = tableOptions.length; i < l; i += 1) {
-    const table = new Table(tableOptions[i], this);
+  for (let i = 0, l = tableConfigs.length; i < l; i += 1) {
+    const { label, itemSchema, transformFunction } = tableConfigs[i];
+    if (typeof label !== 'string' || label === '') {
+      throw Error('table :: label :: unexpected non-empty string');
+    }
+    if (transformFunction !== undefined && typeof transformFunction !== 'function') {
+      throw Error('table :: transformFunction :: unexpected non-function');
+    }
+    const [itemFieldKeys, itemSchemaCopy] = validateSchema(itemSchema);
+    const table = new Table(label, itemFieldKeys, itemSchemaCopy, transformFunction, this);
     list[i] = table;
     dictionary[table.label()] = table;
   }
@@ -855,7 +891,11 @@ function Database(databaseOptions) {
   let saveIsSaving = false;
   const internalSave = async () => {
     const tables = list.filter((table) => table[modified] === true);
-    const data = list.map((table) => table[stringifyFn]());
+    const data = await list.map((table) => this[encodeFn](table[listPointer]));
+    for (let i = 0, l = tables.length; i < l; i += 1) {
+      console.log('marking', tables[i].label(), 'modified === false');
+      tables[i][modified] = false;
+    }
     saveIsSaving = true;
     await tables.map((table, index) => fs.promises.writeFile(`./tables/${table.label()}.table`, data[index]));
     saveIsSaving = false;
@@ -914,9 +954,10 @@ function Database(databaseOptions) {
 }
 
 const db = new Database({
+  saveUseCompression: false,
   saveCheckInterval: 1000,
   saveMaxSkips: 59,
-  tableOptions: [
+  tableConfigs: [
     {
       label: 'users',
       itemSchema: {
