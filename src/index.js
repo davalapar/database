@@ -44,58 +44,58 @@ const Query = {
     querySorts.push([itemFieldKey, true]);
     return Query;
   },
-  ascendh: (itemFieldKey, coordinates) => {
+  ascend_h: (itemFieldKey, coordinates) => {
     if (typeof itemFieldKey !== 'string') {
-      throw Error('ascendh :: itemFieldKey :: Unexpected non-string');
+      throw Error('ascend_h :: itemFieldKey :: Unexpected non-string');
     }
     if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('ascendh :: itemFieldKey :: Unexpected non-existing field');
+      throw Error('ascend_h :: itemFieldKey :: Unexpected non-existing field');
     }
     if (queryItemSchema[itemFieldKey] !== 'coordinates') {
-      throw Error('ascendh :: coordinates :: Unexpected non-coordinates field');
+      throw Error('ascend_h :: coordinates :: Unexpected non-coordinates field');
     }
     if (Array.isArray(coordinates) === false) {
-      throw Error('ascendh :: coordinates :: Unexpected non-array coordinates');
+      throw Error('ascend_h :: coordinates :: Unexpected non-array coordinates');
     }
     if (coordinates.every((value) => typeof value === 'number') === false) {
-      throw Error('ascendh :: coordinates :: Unexpected non-number in coordinates');
+      throw Error('ascend_h :: coordinates :: Unexpected non-number in coordinates');
     }
     if (coordinates.every((value) => Number.isNaN(value) === false) === false) {
-      throw Error('ascendh :: coordinates :: Unexpected NaN in coordinates');
+      throw Error('ascend_h :: coordinates :: Unexpected NaN in coordinates');
     }
     if (coordinates.every((value) => Number.isFinite(value) === true) === false) {
-      throw Error('ascendh :: coordinates :: Unexpected non-finite in coordinates');
+      throw Error('ascend_h :: coordinates :: Unexpected non-finite in coordinates');
     }
     if (coordinates.length !== 2) {
-      throw Error('ascendh :: coordinates :: Unexpected non-2 length for coordinates');
+      throw Error('ascend_h :: coordinates :: Unexpected non-2 length for coordinates');
     }
     querySorts.push([itemFieldKey, false, coordinates]);
     return Query;
   },
-  descendh: (itemFieldKey, coordinates) => {
+  descend_h: (itemFieldKey, coordinates) => {
     if (typeof itemFieldKey !== 'string') {
-      throw Error('descendh :: itemFieldKey :: Unexpected non-string');
+      throw Error('descend_h :: itemFieldKey :: Unexpected non-string');
     }
     if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('descendh :: itemFieldKey :: Unexpected non-existing field');
+      throw Error('descend_h :: itemFieldKey :: Unexpected non-existing field');
     }
     if (queryItemSchema[itemFieldKey] !== 'coordinates') {
-      throw Error('descendh :: coordinates :: Unexpected non-coordinates field');
+      throw Error('descend_h :: coordinates :: Unexpected non-coordinates field');
     }
     if (Array.isArray(coordinates) === false) {
-      throw Error('descendh :: coordinates :: Unexpected non-array coordinates');
+      throw Error('descend_h :: coordinates :: Unexpected non-array coordinates');
     }
     if (coordinates.every((value) => typeof value === 'number') === false) {
-      throw Error('descendh :: coordinates :: Unexpected non-number in coordinates');
+      throw Error('descend_h :: coordinates :: Unexpected non-number in coordinates');
     }
     if (coordinates.every((value) => Number.isNaN(value) === false) === false) {
-      throw Error('descendh :: coordinates :: Unexpected NaN in coordinates');
+      throw Error('descend_h :: coordinates :: Unexpected NaN in coordinates');
     }
     if (coordinates.every((value) => Number.isFinite(value) === true) === false) {
-      throw Error('descendh :: coordinates :: Unexpected non-finite in coordinates');
+      throw Error('descend_h :: coordinates :: Unexpected non-finite in coordinates');
     }
     if (coordinates.length !== 2) {
-      throw Error('descendh :: coordinates :: Unexpected non-2 length for coordinates');
+      throw Error('descend_h :: coordinates :: Unexpected non-2 length for coordinates');
     }
     querySorts.push([itemFieldKey, true, coordinates]);
     return Query;
@@ -268,43 +268,156 @@ const Query = {
     queryList = queryList.filter((item) => item[itemFieldKey] !== value);
     return Query;
   },
-  has: (itemFieldKey, value) => {
+  includes: (itemFieldKey, value) => {
     if (typeof itemFieldKey !== 'string') {
-      throw Error('has :: itemFieldKey :: Unexpected non-string');
+      throw Error('includes :: itemFieldKey :: Unexpected non-string');
     }
     if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('has :: itemFieldKey :: Unexpected non-existing field');
+      throw Error('includes :: itemFieldKey :: Unexpected non-existing field');
     }
     switch (queryItemSchema[itemFieldKey]) {
       case 'booleans': {
         if (typeof value !== 'boolean') {
-          throw Error('has :: value :: Unexpected non-boolean value');
+          throw Error('includes :: value :: Unexpected non-boolean value');
         }
         break;
       }
       case 'strings': {
         if (typeof value !== 'string') {
-          throw Error('has :: value :: Unexpected non-string value');
+          throw Error('includes :: value :: Unexpected non-string value');
         }
         break;
       }
       case 'numbers': {
         if (typeof value !== 'number') {
-          throw Error('has :: value :: Unexpected non-number value');
+          throw Error('includes :: value :: Unexpected non-number value');
         }
         if (Number.isNaN(value) === true) {
-          throw Error('has :: value :: Unexpected NaN value');
+          throw Error('includes :: value :: Unexpected NaN value');
         }
         if (Number.isFinite(value) === false) {
-          throw Error('has :: value :: Unexpected non-finite value');
+          throw Error('includes :: value :: Unexpected non-finite value');
         }
         break;
       }
       default: {
-        throw Error('has :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('includes :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
-    queryList = queryList.filter((item) => item[itemFieldKey].includes(value));
+    queryList = queryList.filter((item) => item[itemFieldKey].includes(value) === true);
+    return Query;
+  },
+  excludes: (itemFieldKey, value) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('excludes :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('excludes :: itemFieldKey :: Unexpected non-existing field');
+    }
+    switch (queryItemSchema[itemFieldKey]) {
+      case 'booleans': {
+        if (typeof value !== 'boolean') {
+          throw Error('excludes :: value :: Unexpected non-boolean value');
+        }
+        break;
+      }
+      case 'strings': {
+        if (typeof value !== 'string') {
+          throw Error('excludes :: value :: Unexpected non-string value');
+        }
+        break;
+      }
+      case 'numbers': {
+        if (typeof value !== 'number') {
+          throw Error('excludes :: value :: Unexpected non-number value');
+        }
+        if (Number.isNaN(value) === true) {
+          throw Error('excludes :: value :: Unexpected NaN value');
+        }
+        if (Number.isFinite(value) === false) {
+          throw Error('excludes :: value :: Unexpected non-finite value');
+        }
+        break;
+      }
+      default: {
+        throw Error('excludes :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+      }
+    }
+    queryList = queryList.filter((item) => item[itemFieldKey].includes(value) === false);
+    return Query;
+  },
+  inside_h: (itemFieldKey, coordinates, meters) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('inside_h :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('inside_h :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (queryItemSchema[itemFieldKey] !== 'coordinates') {
+      throw Error('inside_h :: coordinates :: Unexpected non-coordinates field');
+    }
+    if (Array.isArray(coordinates) === false) {
+      throw Error('inside_h :: coordinates :: Unexpected non-array coordinates');
+    }
+    if (coordinates.every((value) => typeof value === 'number') === false) {
+      throw Error('inside_h :: coordinates :: Unexpected non-number in coordinates');
+    }
+    if (coordinates.every((value) => Number.isNaN(value) === false) === false) {
+      throw Error('inside_h :: coordinates :: Unexpected NaN in coordinates');
+    }
+    if (coordinates.every((value) => Number.isFinite(value) === true) === false) {
+      throw Error('inside_h :: coordinates :: Unexpected non-finite in coordinates');
+    }
+    if (coordinates.length !== 2) {
+      throw Error('inside_h :: coordinates :: Unexpected non-2 length for coordinates');
+    }
+    if (typeof meters !== 'number') {
+      throw Error('inside_h :: meters :: Unexpected non-number meters');
+    }
+    if (Number.isNaN(meters) === true) {
+      throw Error('inside_h :: meters :: Unexpected NaN meters');
+    }
+    if (Number.isFinite(meters) === false) {
+      throw Error('inside_h :: meters :: Unexpected non-finite meters');
+    }
+    queryList = queryList.filter((item) => item[itemFieldKey].length === 2 && haversine(coordinates[0], coordinates[1], item[itemFieldKey][0], item[itemFieldKey][1]) < meters);
+    return Query;
+  },
+  outside_h: (itemFieldKey, coordinates, meters) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('outside_h :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('outside_h :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (queryItemSchema[itemFieldKey] !== 'coordinates') {
+      throw Error('outside_h :: coordinates :: Unexpected non-coordinates field');
+    }
+    if (Array.isArray(coordinates) === false) {
+      throw Error('outside_h :: coordinates :: Unexpected non-array coordinates');
+    }
+    if (coordinates.every((value) => typeof value === 'number') === false) {
+      throw Error('outside_h :: coordinates :: Unexpected non-number in coordinates');
+    }
+    if (coordinates.every((value) => Number.isNaN(value) === false) === false) {
+      throw Error('outside_h :: coordinates :: Unexpected NaN in coordinates');
+    }
+    if (coordinates.every((value) => Number.isFinite(value) === true) === false) {
+      throw Error('outside_h :: coordinates :: Unexpected non-finite in coordinates');
+    }
+    if (coordinates.length !== 2) {
+      throw Error('outside_h :: coordinates :: Unexpected non-2 length for coordinates');
+    }
+    if (typeof meters !== 'number') {
+      throw Error('outside_h :: meters :: Unexpected non-number meters');
+    }
+    if (Number.isNaN(meters) === true) {
+      throw Error('outside_h :: meters :: Unexpected NaN meters');
+    }
+    if (Number.isFinite(meters) === false) {
+      throw Error('outside_h :: meters :: Unexpected non-finite meters');
+    }
+    queryList = queryList.filter((item) => item[itemFieldKey].length === 2 && haversine(coordinates[0], coordinates[1], item[itemFieldKey][0], item[itemFieldKey][1]) > meters);
     return Query;
   },
 
