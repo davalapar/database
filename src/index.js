@@ -3,7 +3,6 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const zlib = require('zlib');
-const util = require('util');
 const copy = require('./copy');
 const haversine = require('./haversine');
 
@@ -674,45 +673,43 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
   this[pointerItemFieldsStringified] = itemFieldsStringified;
 
   if (fs.existsSync(this[pointerCurrentPath]) === true) {
-    (async () => {
-      const encoded = await fs.promises.readFile(this[pointerCurrentPath]);
-      const decoded = database[pointerDecodeFn](encoded);
-      if (Array.isArray(decoded) === false) {
-        throw Error('table :: load :: unexpected non-array "decoded" data.');
+    const encoded = fs.readFileSync(this[pointerCurrentPath]);
+    const decoded = database[pointerDecodeFn](encoded);
+    if (Array.isArray(decoded) === false) {
+      throw Error('table :: load :: unexpected non-array "decoded" data.');
+    }
+    const [loadedItemFieldKeysStringified, loadedList] = decoded;
+    if (typeof loadedItemFieldKeysStringified !== 'string') {
+      throw Error('table :: load :: unexpected non-string "loadedItemFieldKeysStringified" data.');
+    }
+    if (Array.isArray(loadedList) === false) {
+      throw Error('table :: load :: unexpected non-array "loadedList" data.');
+    }
+    if (loadedItemFieldKeysStringified === itemFieldsStringified) {
+      console.log('table :: load :: loaded schema match ok');
+      list = loadedList;
+      this[pointerList] = list;
+      for (let i = 0, l = loadedList.length; i < l; i += 1) {
+        const item = loadedList[i];
+        dictionary[item.id] = item;
       }
-      const [loadedItemFieldKeysStringified, loadedList] = decoded;
-      if (typeof loadedItemFieldKeysStringified !== 'string') {
-        throw Error('table :: load :: unexpected non-string "loadedItemFieldKeysStringified" data.');
+      console.log('table :: load :: loaded', list.length.toString(), 'items');
+    } else {
+      console.log('table :: load :: loaded schema match fail');
+      if (transformFunction === undefined) {
+        throw Error('table :: load :: "transformFunction" is now required and must be a function.');
       }
-      if (Array.isArray(loadedList) === false) {
-        throw Error('table :: load :: unexpected non-array "loadedList" data.');
+      list = new Array(loadedList.length);
+      this[pointerList] = list;
+      for (let i = 0, l = loadedList.length; i < l; i += 1) {
+        const item = loadedList[i];
+        const transformedItem = transformFunction(item);
+        validateItem('load', itemFieldKeys, itemSchema, item);
+        list[i] = transformedItem;
+        dictionary[transformedItem.id] = transformedItem;
       }
-      if (loadedItemFieldKeysStringified === itemFieldsStringified) {
-        console.log('table :: load :: loaded schema match ok');
-        list = loadedList;
-        this[pointerList] = list;
-        for (let i = 0, l = loadedList.length; i < l; i += 1) {
-          const item = loadedList[i];
-          dictionary[item.id] = item;
-        }
-        console.log('table :: load :: loaded', list.length.toString(), 'items');
-      } else {
-        console.log('table :: load :: loaded schema match fail');
-        if (transformFunction === undefined) {
-          throw Error('table :: load :: "transformFunction" is now required and must be a function.');
-        }
-        list = new Array(loadedList.length);
-        this[pointerList] = list;
-        for (let i = 0, l = loadedList.length; i < l; i += 1) {
-          const item = loadedList[i];
-          const transformedItem = transformFunction(item);
-          validateItem('load', itemFieldKeys, itemSchema, item);
-          list[i] = transformedItem;
-          dictionary[transformedItem.id] = transformedItem;
-        }
-        console.log('table :: load :: loaded', list.length.toString(), 'items');
-      }
-    })();
+      console.log('table :: load :: loaded', list.length.toString(), 'items');
+    }
   }
 
 
@@ -891,7 +888,7 @@ function Database(databaseOptions) {
     tableConfigs,
     saveCheckInterval, // pending type-check
     saveMaxSkips, // pending type-check
-    saveUseCompression, // pending type-check
+    saveUseCompression,
   } = databaseOptions;
 
   // more type checks
@@ -901,16 +898,20 @@ function Database(databaseOptions) {
   if (tableConfigs.every((tableConfig) => typeof tableConfig === 'object' && tableConfig !== null) === false) {
     throw Error('table :: tableConfigs :: unexpected non-object tableConfig in tableConfigs');
   }
+  if (typeof saveCheckInterval !== 'number' || Number.isNaN(saveCheckInterval) === true || Number.isFinite(saveCheckInterval) === false || Math.floor(saveCheckInterval) !== saveCheckInterval) {
+    throw Error('table :: saveCheckInterval :: unexpected non-number / NaN / non-finite / non-integer saveCheckInterval');
+  }
+  if (typeof saveMaxSkips !== 'number' || Number.isNaN(saveMaxSkips) === true || Number.isFinite(saveMaxSkips) === false || Math.floor(saveMaxSkips) !== saveMaxSkips) {
+    throw Error('table :: saveMaxSkips :: unexpected non-number / NaN / non-finite / non-integer saveMaxSkips');
+  }
   if (typeof saveUseCompression !== 'undefined' && typeof saveUseCompression !== 'boolean') {
     throw Error('table :: saveUseCompression :: unexpected non-boolean saveUseCompression');
   }
 
   // set encoderFn and decoderFn
   if (saveUseCompression === true) {
-    const asyncGzip = util.promisify(zlib.gzip);
-    const asyncGunzip = util.promisify(zlib.gunzip);
-    this[pointerEncodeFn] = (decoded) => asyncGzip(JSON.stringify(decoded));
-    this[pointerDecodeFn] = (encoded) => asyncGunzip(encoded).then(JSON.parse);
+    this[pointerEncodeFn] = (decoded) => zlib.gzip(JSON.stringify(decoded));
+    this[pointerDecodeFn] = (encoded) => JSON.parse(zlib.gunzipSync(encoded));
   } else {
     this[pointerEncodeFn] = (decoded) => JSON.stringify(decoded);
     this[pointerDecodeFn] = (encoded) => JSON.parse(encoded);
@@ -946,7 +947,6 @@ function Database(databaseOptions) {
     const tables = list.filter((table) => table[pointerModified] === true);
     const encoded = await list.map((table) => this[pointerEncodeFn]([table[pointerItemFieldsStringified], table[pointerList]]));
     for (let i = 0, l = tables.length; i < l; i += 1) {
-      console.log('marking', tables[i].label(), 'pointerModified === false');
       tables[i][pointerModified] = false;
     }
     saveIsSaving = true;
@@ -1030,6 +1030,12 @@ const db = new Database({
 });
 
 const users = db.table('users');
+users.add({
+  id: users.id(),
+  name: 'alice',
+  age: 0,
+  active: false,
+});
 setTimeout(() => {
   users.add({
     id: users.id(),
