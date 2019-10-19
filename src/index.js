@@ -875,7 +875,8 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
 
   // [x] typechecks?
   // [x] working?
-  this[pointerModified] = () => pointerModified;
+  this.size = () => list.length;
+  this.length = () => list.length;
 }
 
 function Database(databaseOptions) {
@@ -1030,12 +1031,14 @@ const db = new Database({
 });
 
 const users = db.table('users');
+console.log(users.size());
 users.add({
   id: users.id(),
   name: 'alice',
   age: 0,
   active: false,
 });
+console.log(users.size());
 setTimeout(() => {
   users.add({
     id: users.id(),
@@ -1043,6 +1046,7 @@ setTimeout(() => {
     age: 0,
     active: false,
   });
+  console.log(users.size());
 }, 500);
 setTimeout(() => {
   users.add({
@@ -1051,6 +1055,7 @@ setTimeout(() => {
     age: 0,
     active: false,
   });
+  console.log(users.size());
 }, 750);
 setTimeout(() => {
   users.add({
@@ -1059,4 +1064,5 @@ setTimeout(() => {
     age: 0,
     active: false,
   });
+  console.log(users.size());
 }, 1750);
