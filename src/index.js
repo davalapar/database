@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const zlib = require('zlib');
+const util = require('util');
 const copy = require('./copy');
 const haversine = require('./haversine');
 
@@ -889,7 +890,7 @@ function Database(databaseOptions) {
     tableConfigs,
     saveCheckInterval, // pending type-check
     saveMaxSkips, // pending type-check
-    saveUseCompression,
+    saveCompressionAlgo,
   } = databaseOptions;
 
   // more type checks
@@ -905,14 +906,19 @@ function Database(databaseOptions) {
   if (typeof saveMaxSkips !== 'number' || Number.isNaN(saveMaxSkips) === true || Number.isFinite(saveMaxSkips) === false || Math.floor(saveMaxSkips) !== saveMaxSkips) {
     throw Error('table :: saveMaxSkips :: unexpected non-number / NaN / non-finite / non-integer saveMaxSkips');
   }
-  if (typeof saveUseCompression !== 'undefined' && typeof saveUseCompression !== 'boolean') {
-    throw Error('table :: saveUseCompression :: unexpected non-boolean saveUseCompression');
+  if (typeof saveCompressionAlgo !== 'undefined' && saveCompressionAlgo !== 'gzip' && saveCompressionAlgo !== 'brotli') {
+    throw Error('table :: saveCompressionAlgo :: unexpected non-"gzip" & non-"brotli" saveCompressionAlgo');
   }
 
   // set encoderFn and decoderFn
-  if (saveUseCompression === true) {
-    this[pointerEncodeFn] = (decoded) => zlib.gzip(JSON.stringify(decoded));
+  if (saveCompressionAlgo === 'gzip') {
+    const asyncGzip = util.promisify(zlib.gzip);
+    this[pointerEncodeFn] = (decoded) => asyncGzip(JSON.stringify(decoded));
     this[pointerDecodeFn] = (encoded) => JSON.parse(zlib.gunzipSync(encoded));
+  } else if (saveCompressionAlgo === 'brotli') {
+    const asyncBrotliCompress = util.promisify(zlib.brotliCompress);
+    this[pointerEncodeFn] = (decoded) => asyncBrotliCompress(JSON.stringify(decoded));
+    this[pointerDecodeFn] = (encoded) => JSON.parse(zlib.brotliDecompressSync(encoded));
   } else {
     this[pointerEncodeFn] = (decoded) => JSON.stringify(decoded);
     this[pointerDecodeFn] = (encoded) => JSON.parse(encoded);
@@ -946,18 +952,18 @@ function Database(databaseOptions) {
   let saveIsSaving = false;
   const internalSave = async () => {
     const tables = list.filter((table) => table[pointerModified] === true);
-    const encoded = await list.map((table) => this[pointerEncodeFn]([table[pointerItemFieldsStringified], table[pointerList]]));
+    const encoded = await Promise.all(list.map((table) => this[pointerEncodeFn]([table[pointerItemFieldsStringified], table[pointerList]])));
     for (let i = 0, l = tables.length; i < l; i += 1) {
       tables[i][pointerModified] = false;
     }
     saveIsSaving = true;
-    await tables.map(async (table, index) => {
+    await Promise.all(tables.map(async (table, index) => {
       await fs.promises.writeFile(table[pointerTempPath], encoded[index]);
       if (fs.existsSync(table[pointerCurrentPath]) === true) {
         await fs.promises.rename(table[pointerCurrentPath], table[pointerOldPath]);
       }
       await fs.promises.writeFile(table[pointerCurrentPath], encoded[index]);
-    });
+    }));
     saveIsSaving = false;
   };
 
@@ -1014,7 +1020,7 @@ function Database(databaseOptions) {
 }
 
 const db = new Database({
-  saveUseCompression: false,
+  saveCompressionAlgo: 'brotli',
   saveCheckInterval: 1000,
   saveMaxSkips: 59,
   tableConfigs: [
