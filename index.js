@@ -1,11 +1,11 @@
-/* eslint-disable no-console */
+/* eslint-disable */
 
 const crypto = require('crypto');
 const fs = require('fs');
 const zlib = require('zlib');
 const util = require('util');
-const copy = require('./copy');
-const haversine = require('./haversine');
+const copy = require('./internals/copy');
+const haversine = require('./internals/haversine');
 
 let queryItemSchema = {};
 let queryList = [];
@@ -687,16 +687,16 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
       throw Error('table :: load :: unexpected non-array "loadedList" data.');
     }
     if (loadedItemFieldKeysStringified === itemFieldsStringified) {
-      console.log('table :: load :: loaded schema match ok');
+      // console.log('table :: load :: loaded schema match ok');
       list = loadedList;
       this[pointerList] = list;
       for (let i = 0, l = loadedList.length; i < l; i += 1) {
         const item = loadedList[i];
         dictionary[item.id] = item;
       }
-      console.log('table :: load :: loaded', list.length.toString(), 'items');
+      // console.log('table :: load :: loaded', list.length.toString(), 'items');
     } else {
-      console.log('table :: load :: loaded schema match fail');
+      // console.log('table :: load :: loaded schema match fail');
       if (transformFunction === undefined) {
         throw Error('table :: load :: "transformFunction" is now required and must be a function.');
       }
@@ -709,7 +709,7 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
         list[i] = transformedItem;
         dictionary[transformedItem.id] = transformedItem;
       }
-      console.log('table :: load :: loaded', list.length.toString(), 'items');
+      // console.log('table :: load :: loaded', list.length.toString(), 'items');
     }
   }
 
@@ -926,18 +926,18 @@ function Database(databaseOptions) {
 
   if (fs.existsSync('./tables') === false) {
     fs.mkdirSync('./tables', { recursive: true });
-    console.log('table :: "./tables" directory created.');
+    // console.log('table :: "./tables" directory created.');
   }
 
   const list = [];
   const dictionary = {};
   for (let i = 0, l = tableConfigs.length; i < l; i += 1) {
     const { label, itemSchema, transformFunction } = tableConfigs[i];
-    if (typeof label !== 'string' || label === '') {
-      throw Error('table :: label :: unexpected non-empty string');
+    if (typeof label !== 'string') {
+      throw Error('database :: tableConfig :: unexpected non-string label');
     }
     if (transformFunction !== undefined && typeof transformFunction !== 'function') {
-      throw Error('table :: transformFunction :: unexpected non-function');
+      throw Error('database :: tableConfig :: unexpected non-function');
     }
     const [itemFieldKeys, itemSchemaCopy] = validateSchema(itemSchema);
     const table = new Table(label, itemFieldKeys, itemSchemaCopy, transformFunction, this);
@@ -945,24 +945,33 @@ function Database(databaseOptions) {
     dictionary[table.label()] = table;
   }
 
-  // [ ] typechecks?
+  // [x] typechecks?
   // [x] working?
-  this.table = (label) => dictionary[label];
+  this.table = (label) => {
+    if (typeof label !== 'string') {
+      throw Error('database :: table :: unexpected non-string label');
+    }
+    if (dictionary[label] === undefined) {
+      throw Error(`database :: table :: unexpected non-existing table "${label}"`);
+    }
+    return dictionary[label];
+  };
 
   let saveIsSaving = false;
   const internalSave = async () => {
     const tables = list.filter((table) => table[pointerModified] === true);
-    const encoded = await Promise.all(list.map((table) => this[pointerEncodeFn]([table[pointerItemFieldsStringified], table[pointerList]])));
-    for (let i = 0, l = tables.length; i < l; i += 1) {
-      tables[i][pointerModified] = false;
-    }
+    const tableContents = await Promise.all(list.map(async (table, index) => {
+      const tableContent = await this[pointerEncodeFn]([table[pointerItemFieldsStringified], table[pointerList]]);
+      tables[index][pointerModified] = false;
+      return tableContent;
+    }));
     saveIsSaving = true;
     await Promise.all(tables.map(async (table, index) => {
-      await fs.promises.writeFile(table[pointerTempPath], encoded[index]);
+      await fs.promises.writeFile(table[pointerTempPath], tableContents[index]);
       if (fs.existsSync(table[pointerCurrentPath]) === true) {
         await fs.promises.rename(table[pointerCurrentPath], table[pointerOldPath]);
       }
-      await fs.promises.writeFile(table[pointerCurrentPath], encoded[index]);
+      await fs.promises.writeFile(table[pointerCurrentPath], tableContents[index]);
     }));
     saveIsSaving = false;
   };
@@ -974,7 +983,7 @@ function Database(databaseOptions) {
   this.save = () => {
     if (saveIsSaving === true) {
       saveQueued = true;
-      console.log('save : currently saving, queueing save');
+      // console.log('save : currently saving, queueing save');
       return;
     }
     if (saveInterval === undefined) {
@@ -985,90 +994,38 @@ function Database(databaseOptions) {
             saveSkipNext = false;
             if (saveSkips < saveMaxSkips) {
               saveSkips += 1;
-              console.log('save tick', tid, ': save skipped');
+              // console.log('save tick', tid, ': save skipped');
             } else {
               saveSkips = 0;
-              console.log('save tick', tid, ': saving');
+              // console.log('save tick', tid, ': saving');
               await internalSave();
-              console.log('save tick', tid, ': save ok');
+              // console.log('save tick', tid, ': save ok');
               if (saveQueued === false) {
-                console.log('save tick', tid, ': save tick cleared');
+                // console.log('save tick', tid, ': save tick cleared');
                 clearInterval(saveInterval);
                 saveInterval = undefined;
               }
             }
           } else {
-            console.log('save tick', tid, ': saving');
+            // console.log('save tick', tid, ': saving');
             await internalSave();
-            console.log('save tick', tid, ': save ok');
+            // console.log('save tick', tid, ': save ok');
             if (saveQueued === false) {
-              console.log('save tick', tid, ': save tick cleared');
+              // console.log('save tick', tid, ': save tick cleared');
               clearInterval(saveInterval);
               saveInterval = undefined;
             }
           }
         } else {
-          console.log('save tick', tid, ': currently saving, doing nothing');
+          // console.log('save tick', tid, ': currently saving, doing nothing');
         }
       }, saveCheckInterval);
-      console.log('save : creating save tick');
+      // console.log('save : creating save tick');
     } else {
       saveSkipNext = true;
-      console.log('save : save tick exists, skipping save on next tick');
+      // console.log('save : save tick exists, skipping save on next tick');
     }
   };
 }
 
-const db = new Database({
-  saveCompressionAlgo: 'brotli',
-  saveCheckInterval: 1000,
-  saveMaxSkips: 59,
-  tableConfigs: [
-    {
-      label: 'users',
-      itemSchema: {
-        name: 'string',
-        age: 'number',
-        active: 'boolean',
-      },
-      transformFunction: () => {},
-    },
-  ],
-});
-
-const users = db.table('users');
-console.log(users.size());
-users.add({
-  id: users.id(),
-  name: 'alice',
-  age: 0,
-  active: false,
-});
-console.log(users.size());
-setTimeout(() => {
-  users.add({
-    id: users.id(),
-    name: 'alice',
-    age: 0,
-    active: false,
-  });
-  console.log(users.size());
-}, 500);
-setTimeout(() => {
-  users.add({
-    id: users.id(),
-    name: 'alice',
-    age: 0,
-    active: false,
-  });
-  console.log(users.size());
-}, 750);
-setTimeout(() => {
-  users.add({
-    id: users.id(),
-    name: 'alice',
-    age: 0,
-    active: false,
-  });
-  console.log(users.size());
-}, 1750);
+module.exports = Database;
