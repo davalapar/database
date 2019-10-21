@@ -4,7 +4,7 @@ const Database = require('./index');
 
 
 const db = new Database({
-  saveCompressionAlgo: 'brotli',
+  // saveCompressionAlgo: 'brotli',
   saveCheckInterval: 100,
   saveMaxSkips: 2,
   tableConfigs: [

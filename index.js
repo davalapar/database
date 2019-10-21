@@ -877,7 +877,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
   // [x] typechecks?
   // [x] working?
   this.size = () => list.length;
-  this.length = () => list.length;
 }
 
 function Database(databaseOptions) {

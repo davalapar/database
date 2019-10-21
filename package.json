@@ -1,7 +1,7 @@
 {
   "name": "@davalapar/database",
-  "version": "0.0.4",
-  "description": "Fast, performant, persistent database.",
+  "version": "0.0.69",
+  "description": "fast, performant, persistent database.",
   "main": "index.js",
   "repository": "git@github.com:davalapar/database.git",
   "author": "davalapar <davalapar@gmail.com>",
@@ -16,7 +16,7 @@
     "jest": "^24.9.0"
   },
   "scripts": {
-    "test": "jest --runInBand"
+    "test": "jest --runInBand --watch"
   },
   "dependencies": {}
 }
