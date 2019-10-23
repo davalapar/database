@@ -18,7 +18,7 @@ const db = new Database({
       transformFunction: () => {},
     },
     {
-      label: 'locations',
+      label: 'places',
       itemSchema: {
         label: 'string',
         tags: 'strings',
@@ -235,6 +235,17 @@ test('query: neq boolean', () => {
     .neq('active', true)
     .results();
   expect(results.length).toBe(2);
+});
+
+test('table: setup strings, coordinates', () => {
+  const places = db.table('places');
+  places.add({
+    id: 'rizal-park-id',
+    label: 'rizal park',
+    tags: ['park'],
+    coordinates: [14.5831, 120.9794],
+  });
+  expect(places.size()).toBe(1);
 });
 
 afterAll(() => {

@@ -1045,21 +1045,25 @@ function Database(databaseOptions) {
 
   let saveIsSaving = false;
   const internalSave = async () => {
-    const tables = list.filter((table) => table[pointerModified] === true);
-    const tableContents = await Promise.all(list.map(async (table, index) => {
-      const tableContent = await this[pointerEncodeFn]([table[pointerItemFieldsStringified], table[pointerList]]);
-      tables[index][pointerModified] = false;
-      return tableContent;
-    }));
-    saveIsSaving = true;
-    await Promise.all(tables.map(async (table, index) => {
-      await fs.promises.writeFile(table[pointerTempPath], tableContents[index]);
-      if (fs.existsSync(table[pointerCurrentPath]) === true) {
-        await fs.promises.rename(table[pointerCurrentPath], table[pointerOldPath]);
-      }
-      await fs.promises.writeFile(table[pointerCurrentPath], tableContents[index]);
-    }));
-    saveIsSaving = false;
+    try {
+      const tables = list.filter((table) => table[pointerModified] === true);
+      const tableContents = await Promise.all(tables.map(async (table, index) => {
+        const tableContent = await this[pointerEncodeFn]([table[pointerItemFieldsStringified], table[pointerList]]);
+        tables[index][pointerModified] = false;
+        return tableContent;
+      }));
+      saveIsSaving = true;
+      await Promise.all(tables.map(async (table, index) => {
+        await fs.promises.writeFile(table[pointerTempPath], tableContents[index]);
+        if (fs.existsSync(table[pointerCurrentPath]) === true) {
+          await fs.promises.rename(table[pointerCurrentPath], table[pointerOldPath]);
+        }
+        await fs.promises.writeFile(table[pointerCurrentPath], tableContents[index]);
+      }));
+      saveIsSaving = false;
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   let saveInterval;
