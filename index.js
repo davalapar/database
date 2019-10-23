@@ -595,6 +595,18 @@ const Query = {
             }
           } else {
             // type: coordinates
+            if (a[itemFieldKey].length === 0 && b[itemFieldKey].length === 0) {
+              return 0;
+            }
+            if (a[itemFieldKey].length === 0) {
+              return -1;
+            }
+            if (b[itemFieldKey].length === 0) {
+              return 1;
+            }
+            if (a[itemFieldKey][0] === b[itemFieldKey][0] && a[itemFieldKey][1] === b[itemFieldKey][1]) {
+              return 0;
+            }
             return descend
               ? haversine(coordinates[0], coordinates[1], b[itemFieldKey][0], b[itemFieldKey][1]) - haversine(coordinates[0], coordinates[1], a[itemFieldKey][0], a[itemFieldKey][1])
               : haversine(coordinates[0], coordinates[1], a[itemFieldKey][0], a[itemFieldKey][1]) - haversine(coordinates[0], coordinates[1], b[itemFieldKey][0], b[itemFieldKey][1]);
