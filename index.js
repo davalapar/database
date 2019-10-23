@@ -379,6 +379,9 @@ const Query = {
     if (Number.isFinite(meters) === false) {
       throw Error('inside_h :: meters :: Unexpected non-finite meters');
     }
+    if (meters <= 0) {
+      throw Error('outside_h :: meters :: Unexpected less-than-zero meters');
+    }
     queryFilters.push([9, itemFieldKey, coordinates, meters]);
     return Query;
   },
@@ -415,6 +418,9 @@ const Query = {
     }
     if (Number.isFinite(meters) === false) {
       throw Error('outside_h :: meters :: Unexpected non-finite meters');
+    }
+    if (meters <= 0) {
+      throw Error('outside_h :: meters :: Unexpected less-than-zero meters');
     }
     queryFilters.push([10, itemFieldKey, coordinates, meters]);
     return Query;

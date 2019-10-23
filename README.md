@@ -111,12 +111,6 @@ const items = users.query().results();
 - `query.page(value) -> query`
 - `query.results() -> items[]`
 
-#### in progress
-
-- key-value tables
-- process clustering
-- synchronous saves upon SIGINT
-
 #### License
 
 MIT | @davalapar
