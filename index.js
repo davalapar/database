@@ -797,13 +797,8 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     }
   }
 
-
-  // [x] typechecks?
-  // [x] working?
   this.label = () => label;
 
-  // [x] typechecks?
-  // [x] working?
   this.id = () => {
     let itemId = crypto.randomBytes(16).toString('hex');
     while (dictionary[itemId] !== undefined) {
@@ -812,8 +807,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return itemId;
   };
 
-  // [x] typechecks?
-  // [x] working?
   this.clear = () => {
     list = [];
     dictionary = {};
@@ -823,8 +816,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return this;
   };
 
-  // [x] typechecks?
-  // [x] working?
   this.add = (newItem) => {
     validateItem('add', itemFieldKeys, itemSchema, newItem);
     const { id } = newItem;
@@ -842,8 +833,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return newItem;
   };
 
-  // [x] typechecks?
-  // [x] working?
   this.update = (updatedItem) => {
     validateItem('update', itemFieldKeys, itemSchema, updatedItem);
     const { id } = updatedItem;
@@ -863,8 +852,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return updatedItem;
   };
 
-  // [x] typechecks?
-  // [x] working?
   this.get = (itemId) => {
     if (typeof itemId !== 'string') {
       throw Error(`table :: get :: unexpected non-string id "${itemId}"`);
@@ -875,8 +862,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return dictionary[itemId];
   };
 
-  // [x] typechecks?
-  // [x] working?
   this.delete = (itemId) => {
     if (typeof itemId !== 'string') {
       throw Error('table :: delete :: unexpected non-string itemId');
@@ -893,8 +878,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return this;
   };
 
-  // [x] typechecks?
-  // [x] working?
   this.increment = (itemId, itemFieldKey) => {
     if (typeof itemId !== 'string') {
       throw Error('table :: increment :: unexpected non-string itemId');
@@ -915,8 +898,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return this;
   };
 
-  // [x] typechecks?
-  // [x] working?
   this.decrement = (itemId, itemFieldKey) => {
     if (typeof itemId !== 'string') {
       throw Error('table :: decrement :: unexpected non-string itemId');
@@ -937,8 +918,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return this;
   };
 
-  // [x] typechecks?
-  // [x] working?
   this.has = (itemId) => {
     if (typeof itemId !== 'string') {
       throw Error(`table :: has :: unexpected non-string id "${itemId}"`);
@@ -946,8 +925,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return dictionary[itemId] !== undefined;
   };
 
-  // [ ] typechecks?
-  // [x] working?
   this.query = () => {
     queryItemSchema = itemSchema;
     queryList = list;
@@ -959,8 +936,6 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return Query;
   };
 
-  // [x] typechecks?
-  // [x] working?
   this.size = () => list.length;
 }
 
@@ -972,8 +947,8 @@ function Database(databaseOptions) {
 
   const {
     tableConfigs,
-    saveCheckInterval, // pending type-check
-    saveMaxSkips, // pending type-check
+    saveCheckInterval,
+    saveMaxSkips,
     saveCompressionAlgo,
   } = databaseOptions;
 
