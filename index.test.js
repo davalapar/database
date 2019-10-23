@@ -147,7 +147,7 @@ test('query: results', () => {
   expect(users.query().results().length).toBe(5);
 });
 
-test('query: gt', () => {
+test('query: filter gt', () => {
   const users = db.table('users');
   expect(users.size()).toBe(5);
   const results = users.query()
@@ -156,7 +156,7 @@ test('query: gt', () => {
   expect(results.length).toBe(3);
 });
 
-test('query: gte', () => {
+test('query: filter gte', () => {
   const users = db.table('users');
   expect(users.size()).toBe(5);
   const results = users.query()
@@ -165,7 +165,7 @@ test('query: gte', () => {
   expect(results.length).toBe(4);
 });
 
-test('query: lt', () => {
+test('query: filter lt', () => {
   const users = db.table('users');
   expect(users.size()).toBe(5);
   const results = users.query()
@@ -174,7 +174,7 @@ test('query: lt', () => {
   expect(results.length).toBe(1);
 });
 
-test('query: lte', () => {
+test('query: filter lte', () => {
   const users = db.table('users');
   expect(users.size()).toBe(5);
   const results = users.query()
@@ -183,7 +183,7 @@ test('query: lte', () => {
   expect(results.length).toBe(2);
 });
 
-test('query: eq number', () => {
+test('query: filter eq number', () => {
   const users = db.table('users');
   expect(users.size()).toBe(5);
   const results = users.query()
@@ -192,7 +192,7 @@ test('query: eq number', () => {
   expect(results.length).toBe(1);
 });
 
-test('query: neq number', () => {
+test('query: filter neq number', () => {
   const users = db.table('users');
   expect(users.size()).toBe(5);
   const results = users.query()
@@ -201,7 +201,7 @@ test('query: neq number', () => {
   expect(results.length).toBe(4);
 });
 
-test('query: eq string', () => {
+test('query: filter eq string', () => {
   const users = db.table('users');
   expect(users.size()).toBe(5);
   const results = users.query()
@@ -210,7 +210,7 @@ test('query: eq string', () => {
   expect(results.length).toBe(1);
 });
 
-test('query: neq string', () => {
+test('query: filter neq string', () => {
   const users = db.table('users');
   expect(users.size()).toBe(5);
   const results = users.query()
@@ -219,7 +219,7 @@ test('query: neq string', () => {
   expect(results.length).toBe(4);
 });
 
-test('query: eq boolean', () => {
+test('query: filter eq boolean', () => {
   const users = db.table('users');
   expect(users.size()).toBe(5);
   const results = users.query()
@@ -228,13 +228,69 @@ test('query: eq boolean', () => {
   expect(results.length).toBe(3);
 });
 
-test('query: neq boolean', () => {
+test('query: filter neq boolean', () => {
   const users = db.table('users');
   expect(users.size()).toBe(5);
   const results = users.query()
     .neq('active', true)
     .results();
   expect(results.length).toBe(2);
+});
+
+test('query: sort ascend string', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .ascend('name')
+    .results();
+  expect(results.length).toBe(5);
+  expect(results[0].name).toBe('alice');
+  expect(results[1].name).toBe('bob');
+  expect(results[2].name).toBe('cathy');
+  expect(results[3].name).toBe('erica');
+  expect(results[4].name).toBe('fiona');
+});
+
+test('query: sort descend string', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .descend('name')
+    .results();
+  expect(results.length).toBe(5);
+  expect(results[0].name).toBe('fiona');
+  expect(results[1].name).toBe('erica');
+  expect(results[2].name).toBe('cathy');
+  expect(results[3].name).toBe('bob');
+  expect(results[4].name).toBe('alice');
+});
+
+test('query: sort ascend number', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .ascend('age')
+    .results();
+  expect(results.length).toBe(5);
+  expect(results[0].name).toBe('alice');
+  expect(results[1].name).toBe('bob');
+  expect(results[2].name).toBe('cathy');
+  expect(results[3].name).toBe('erica');
+  expect(results[4].name).toBe('fiona');
+});
+
+test('query: sort descend number', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .descend('age')
+    .results();
+  expect(results.length).toBe(5);
+  expect(results[0].name).toBe('fiona');
+  expect(results[1].name).toBe('erica');
+  expect(results[2].name).toBe('cathy');
+  expect(results[3].name).toBe('bob');
+  expect(results[4].name).toBe('alice');
 });
 
 test('table: setup strings, coordinates', () => {
@@ -304,6 +360,32 @@ test('query: filter outside_h', () => {
     .outside_h('coordinates', makatiAveCorAyalaAve, 2000)
     .results();
   expect(results.length).toBe(2);
+});
+
+test('query: sort ascend_h', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .ascend_h('coordinates', makatiAveCorAyalaAve)
+    .results();
+  expect(results.length).toBe(4);
+  expect(results[0].id).toBe('ayala-triangle-gardens-id');
+  expect(results[1].id).toBe('greenbelt-1-id');
+  expect(results[2].id).toBe('rizal-park-id');
+  expect(results[3].id).toBe('sm-novaliches-id');
+});
+
+test('query: sort descend_h', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .descend_h('coordinates', makatiAveCorAyalaAve)
+    .results();
+  expect(results.length).toBe(4);
+  expect(results[0].id).toBe('sm-novaliches-id');
+  expect(results[1].id).toBe('rizal-park-id');
+  expect(results[2].id).toBe('greenbelt-1-id');
+  expect(results[3].id).toBe('ayala-triangle-gardens-id');
 });
 
 afterAll(() => {
