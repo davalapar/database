@@ -239,13 +239,71 @@ test('query: neq boolean', () => {
 
 test('table: setup strings, coordinates', () => {
   const places = db.table('places');
+  places.clear();
+  expect(places.size()).toBe(0);
   places.add({
     id: 'rizal-park-id',
     label: 'rizal park',
     tags: ['park'],
     coordinates: [14.5831, 120.9794],
   });
-  expect(places.size()).toBe(1);
+  places.add({
+    id: 'ayala-triangle-gardens-id',
+    label: 'ayala triangle gardens',
+    tags: ['park'],
+    coordinates: [14.5571, 121.0230],
+  });
+  places.add({
+    id: 'sm-novaliches-id',
+    label: 'sm novaliches',
+    tags: ['mall'],
+    coordinates: [14.7082, 121.0374],
+  });
+  places.add({
+    id: 'greenbelt-1-id',
+    label: 'greenbelt 1',
+    tags: ['mall'],
+    coordinates: [14.55452, 121.0204692],
+  });
+  expect(places.size()).toBe(4);
+});
+
+test('query: filter includes', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .includes('tags', 'mall')
+    .results();
+  expect(results.length).toBe(2);
+});
+
+test('query: filter excludes', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .excludes('tags', 'mall')
+    .results();
+  expect(results.length).toBe(2);
+});
+
+const makatiAveCorAyalaAve = [14.5546474, 121.0245846];
+
+test('query: filter inside_h', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .inside_h('coordinates', makatiAveCorAyalaAve, 2000)
+    .results();
+  expect(results.length).toBe(2);
+});
+
+test('query: filter outside_h', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .outside_h('coordinates', makatiAveCorAyalaAve, 2000)
+    .results();
+  expect(results.length).toBe(2);
 });
 
 afterAll(() => {
