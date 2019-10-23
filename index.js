@@ -425,6 +425,150 @@ const Query = {
     queryFilters.push([10, itemFieldKey, coordinates, meters]);
     return Query;
   },
+  includes_some: (itemFieldKey, values) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('includes_some :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('includes_some :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (Array.isArray(values) === false) {
+      throw Error('includes_some :: values :: Unexpected non-array values');
+    }
+    switch (queryItemSchema[itemFieldKey]) {
+      case 'booleans': {
+        if (values.every((value) => typeof value === 'boolean') === false) {
+          throw Error('includes_some :: values :: Unexpected non-boolean value');
+        }
+        break;
+      }
+      case 'strings': {
+        if (values.every((value) => typeof value === 'string') === false) {
+          throw Error('includes_some :: values :: Unexpected non-string value');
+        }
+        break;
+      }
+      case 'numbers': {
+        if (values.every((value) => typeof value === 'number' && Number.isNaN(value) === false && Number.isFinite(value) === true) === false) {
+          throw Error('includes_some :: values :: Unexpected non-number / NaN / non-finite value');
+        }
+        break;
+      }
+      default: {
+        throw Error('includes_some :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+      }
+    }
+    queryFilters.push([11, itemFieldKey, values]);
+    return Query;
+  },
+  includes_all: (itemFieldKey, values) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('includes_all :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('includes_all :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (Array.isArray(values) === false) {
+      throw Error('includes_all :: values :: Unexpected non-array values');
+    }
+    switch (queryItemSchema[itemFieldKey]) {
+      case 'booleans': {
+        if (values.every((value) => typeof value === 'boolean') === false) {
+          throw Error('includes_all :: values :: Unexpected non-boolean value');
+        }
+        break;
+      }
+      case 'strings': {
+        if (values.every((value) => typeof value === 'string') === false) {
+          throw Error('includes_all :: values :: Unexpected non-string value');
+        }
+        break;
+      }
+      case 'numbers': {
+        if (values.every((value) => typeof value === 'number' && Number.isNaN(value) === false && Number.isFinite(value) === true) === false) {
+          throw Error('includes_all :: values :: Unexpected non-number / NaN / non-finite value');
+        }
+        break;
+      }
+      default: {
+        throw Error('includes_all :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+      }
+    }
+    queryFilters.push([12, itemFieldKey, values]);
+    return Query;
+  },
+  excludes_some: (itemFieldKey, values) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('excludes_some :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('excludes_some :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (Array.isArray(values) === false) {
+      throw Error('excludes_some :: values :: Unexpected non-array values');
+    }
+    switch (queryItemSchema[itemFieldKey]) {
+      case 'booleans': {
+        if (values.every((value) => typeof value === 'boolean') === false) {
+          throw Error('excludes_some :: values :: Unexpected non-boolean value');
+        }
+        break;
+      }
+      case 'strings': {
+        if (values.every((value) => typeof value === 'string') === false) {
+          throw Error('excludes_some :: values :: Unexpected non-string value');
+        }
+        break;
+      }
+      case 'numbers': {
+        if (values.every((value) => typeof value === 'number' && Number.isNaN(value) === false && Number.isFinite(value) === true) === false) {
+          throw Error('excludes_some :: values :: Unexpected non-number / NaN / non-finite value');
+        }
+        break;
+      }
+      default: {
+        throw Error('excludes_some :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+      }
+    }
+    queryFilters.push([13, itemFieldKey, values]);
+    return Query;
+  },
+  excludes_all: (itemFieldKey, values) => {
+    if (typeof itemFieldKey !== 'string') {
+      throw Error('excludes_all :: itemFieldKey :: Unexpected non-string');
+    }
+    if (queryItemSchema[itemFieldKey] === undefined) {
+      throw Error('excludes_all :: itemFieldKey :: Unexpected non-existing field');
+    }
+    if (Array.isArray(values) === false) {
+      throw Error('excludes_all :: values :: Unexpected non-array values');
+    }
+    switch (queryItemSchema[itemFieldKey]) {
+      case 'booleans': {
+        if (values.every((value) => typeof value === 'boolean') === false) {
+          throw Error('excludes_all :: values :: Unexpected non-boolean value');
+        }
+        break;
+      }
+      case 'strings': {
+        if (values.every((value) => typeof value === 'string') === false) {
+          throw Error('excludes_all :: values :: Unexpected non-string value');
+        }
+        break;
+      }
+      case 'numbers': {
+        if (values.every((value) => typeof value === 'number' && Number.isNaN(value) === false && Number.isFinite(value) === true) === false) {
+          throw Error('excludes_all :: values :: Unexpected non-number / NaN / non-finite value');
+        }
+        break;
+      }
+      default: {
+        throw Error('excludes_all :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+      }
+    }
+    queryFilters.push([14, itemFieldKey, values]);
+    return Query;
+  },
 
   // PAGINATE:
   limit: (value) => {
@@ -497,52 +641,52 @@ const Query = {
     if (queryFilters.length > 0) {
       queryList = queryList.filter((item) => {
         for (let i = 0, l = queryFilters.length; i < l; i += 1) {
-          const [filterType, itemFieldKey, valueOrCoordinates, meters] = queryFilters[i];
+          const [filterType, itemFieldKey, valueOrCoordinatesOrValues, meters] = queryFilters[i];
           switch (filterType) {
             case 1: { // gt
-              if (item[itemFieldKey] <= valueOrCoordinates) {
+              if (item[itemFieldKey] <= valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 2: { // gte
-              if (item[itemFieldKey] < valueOrCoordinates) {
+              if (item[itemFieldKey] < valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 3: { // lt
-              if (item[itemFieldKey] >= valueOrCoordinates) {
+              if (item[itemFieldKey] >= valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 4: { // lte
-              if (item[itemFieldKey] > valueOrCoordinates) {
+              if (item[itemFieldKey] > valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 5: { // eq
-              if (item[itemFieldKey] !== valueOrCoordinates) {
+              if (item[itemFieldKey] !== valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 6: { // neq
-              if (item[itemFieldKey] === valueOrCoordinates) {
+              if (item[itemFieldKey] === valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 7: { // includes
-              if (item[itemFieldKey].includes(valueOrCoordinates) === false) {
+              if (item[itemFieldKey].includes(valueOrCoordinatesOrValues) === false) {
                 return false;
               }
               break;
             }
             case 8: { // excludes
-              if (item[itemFieldKey].includes(valueOrCoordinates) === true) {
+              if (item[itemFieldKey].includes(valueOrCoordinatesOrValues) === true) {
                 return false;
               }
               break;
@@ -551,10 +695,10 @@ const Query = {
               if (item[itemFieldKey].length === 0) {
                 return false;
               }
-              if (item[itemFieldKey].includes(valueOrCoordinates) === true) {
+              if (item[itemFieldKey].includes(valueOrCoordinatesOrValues) === true) {
                 return false;
               }
-              if (haversine(valueOrCoordinates[0], valueOrCoordinates[1], item[itemFieldKey][0], item[itemFieldKey][1]) > meters) {
+              if (haversine(valueOrCoordinatesOrValues[0], valueOrCoordinatesOrValues[1], item[itemFieldKey][0], item[itemFieldKey][1]) > meters) {
                 return false;
               }
               break;
@@ -563,10 +707,34 @@ const Query = {
               if (item[itemFieldKey].length === 0) {
                 return false;
               }
-              if (item[itemFieldKey].includes(valueOrCoordinates) === true) {
+              if (item[itemFieldKey].includes(valueOrCoordinatesOrValues) === true) {
                 return false;
               }
-              if (haversine(valueOrCoordinates[0], valueOrCoordinates[1], item[itemFieldKey][0], item[itemFieldKey][1]) <= meters) {
+              if (haversine(valueOrCoordinatesOrValues[0], valueOrCoordinatesOrValues[1], item[itemFieldKey][0], item[itemFieldKey][1]) <= meters) {
+                return false;
+              }
+              break;
+            }
+            case 11: { // includes_some
+              if (valueOrCoordinatesOrValues.some((value) => item[itemFieldKey].includes(value)) === false) {
+                return false;
+              }
+              break;
+            }
+            case 12: { // includes_all
+              if (valueOrCoordinatesOrValues.every((value) => item[itemFieldKey].includes(value)) === false) {
+                return false;
+              }
+              break;
+            }
+            case 13: { // excludes_some
+              if (valueOrCoordinatesOrValues.some((value) => item[itemFieldKey].includes(value)) === true) {
+                return false;
+              }
+              break;
+            }
+            case 14: { // excludes_all
+              if (valueOrCoordinatesOrValues.every((value) => item[itemFieldKey].includes(value)) === true) {
                 return false;
               }
               break;

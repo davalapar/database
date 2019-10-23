@@ -104,6 +104,10 @@ const items = users.query().results();
 - `query.neq(itemFieldKey, value) -> query`
 - `query.includes(itemFieldKey, value) -> query`
 - `query.excludes(itemFieldKey, value) -> query`
+- `query.includes_some(itemFieldKey, values) -> query`
+- `query.includes_all(itemFieldKey, values) -> query`
+- `query.excludes_some(itemFieldKey, values) -> query`
+- `query.excludes_all(itemFieldKey, values) -> query`
 - `query.inside_h(itemFieldKey, coordinates, meters) -> query`
 - `query.outside_h(itemFieldKey, coordinates, meters) -> query`
 - `query.limit(value) -> query`

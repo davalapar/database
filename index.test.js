@@ -388,6 +388,42 @@ test('query: sort descend_h', () => {
   expect(results[3].id).toBe('ayala-triangle-gardens-id');
 });
 
+test('query: filter includes_some', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .includes_some('tags', ['mall'])
+    .results();
+  expect(results.length).toBe(2);
+});
+
+test('query: filter includes_all', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .includes_all('tags', ['mall'])
+    .results();
+  expect(results.length).toBe(2);
+});
+
+test('query: filter excludes_some', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .excludes_some('tags', ['mall'])
+    .results();
+  expect(results.length).toBe(2);
+});
+
+test('query: filter excludes_all', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .excludes_all('tags', ['mall'])
+    .results();
+  expect(results.length).toBe(2);
+});
+
 afterAll(() => {
   const users = db.table('users');
   users.clear();
