@@ -16,7 +16,8 @@ yarn add @davalapar/database
   - coordinates
 - items: 128-bit id randomization
 - items: forced explicit values
-- queries: sort stacking
+- queries: filter stacking (by multiple comparison operators)
+- queries: sort stacking (by multiple columns / fields)
 - queries: geolocation sorting & filtering
 - database: asynchronous debounced saves
 - database: supports compression
@@ -42,14 +43,23 @@ const db = new Database({
       },
       transformFunction: () => {},
     },
+    {
+      label: 'places',
+      itemSchema: {
+        label: 'string',
+        tags: 'strings',
+        coordinates: 'coordinates',
+      },
+      transformFunction: () => {},
+    },
   ],
 });
 ```
 
-- `databaseOptions.saveCompressionAlgo`: boolean, 'gzip' or 'brotli'
+- `databaseOptions.saveCompressionAlgo`: optional string, 'gzip' or 'brotli'
 - `databaseOptions.saveCheckInterval`: optional integer, in milliseconds
 - `databaseOptions.saveMaxSkips`: optional integer
-- `databaseOptions.tableConfigs`: array of tabelConfig
+- `databaseOptions.tableConfigs`: array of tableConfig
 - `tableConfig.label`: label of table
 - `tableConfig.itemSchema`: schema of table
 - `tableConfig.transformFunction`: transform function for table
