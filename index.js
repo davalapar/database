@@ -1,4 +1,3 @@
-/* eslint-disable */
 
 const crypto = require('crypto');
 const fs = require('fs');
@@ -9,6 +8,7 @@ const haversine = require('./internals/haversine');
 
 let queryItemSchema = {};
 let queryList = [];
+let queryFilters = [];
 let querySorts = [];
 let queryLimit = Infinity;
 let queryOffset = 0;
@@ -122,7 +122,7 @@ const Query = {
     if (Number.isFinite(value) === false) {
       throw Error('gt :: value :: Unexpected non-finite value');
     }
-    queryList = queryList.filter((item) => item[itemFieldKey] > value);
+    queryFilters.push([1, itemFieldKey, value]);
     return Query;
   },
   gte: (itemFieldKey, value) => {
@@ -144,7 +144,7 @@ const Query = {
     if (Number.isFinite(value) === false) {
       throw Error('gte :: value :: Unexpected non-finite value');
     }
-    queryList = queryList.filter((item) => item[itemFieldKey] >= value);
+    queryFilters.push([2, itemFieldKey, value]);
     return Query;
   },
   lt: (itemFieldKey, value) => {
@@ -166,7 +166,7 @@ const Query = {
     if (Number.isFinite(value) === false) {
       throw Error('lt :: value :: Unexpected non-finite value');
     }
-    queryList = queryList.filter((item) => item[itemFieldKey] < value);
+    queryFilters.push([3, itemFieldKey, value]);
     return Query;
   },
   lte: (itemFieldKey, value) => {
@@ -188,7 +188,7 @@ const Query = {
     if (Number.isFinite(value) === false) {
       throw Error('lte :: value :: Unexpected non-finite value');
     }
-    queryList = queryList.filter((item) => item[itemFieldKey] <= value);
+    queryFilters.push([4, itemFieldKey, value]);
     return Query;
   },
   eq: (itemFieldKey, value) => {
@@ -227,7 +227,7 @@ const Query = {
         throw Error('eq :: itemFieldKey :: Unexpected non-string, non-number, and non-boolean field');
       }
     }
-    queryList = queryList.filter((item) => item[itemFieldKey] === value);
+    queryFilters.push([5, itemFieldKey, value]);
     return Query;
   },
   neq: (itemFieldKey, value) => {
@@ -266,7 +266,7 @@ const Query = {
         throw Error('neq :: itemFieldKey :: Unexpected non-string, non-number, and non-boolean field');
       }
     }
-    queryList = queryList.filter((item) => item[itemFieldKey] !== value);
+    queryFilters.push([6, itemFieldKey, value]);
     return Query;
   },
   includes: (itemFieldKey, value) => {
@@ -305,7 +305,7 @@ const Query = {
         throw Error('includes :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
-    queryList = queryList.filter((item) => item[itemFieldKey].includes(value) === true);
+    queryFilters.push([7, itemFieldKey, value]);
     return Query;
   },
   excludes: (itemFieldKey, value) => {
@@ -344,7 +344,7 @@ const Query = {
         throw Error('excludes :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
-    queryList = queryList.filter((item) => item[itemFieldKey].includes(value) === false);
+    queryFilters.push([8, itemFieldKey, value]);
     return Query;
   },
   inside_h: (itemFieldKey, coordinates, meters) => {
@@ -381,7 +381,7 @@ const Query = {
     if (Number.isFinite(meters) === false) {
       throw Error('inside_h :: meters :: Unexpected non-finite meters');
     }
-    queryList = queryList.filter((item) => item[itemFieldKey].length === 2 && haversine(coordinates[0], coordinates[1], item[itemFieldKey][0], item[itemFieldKey][1]) < meters);
+    queryFilters.push([9, itemFieldKey, coordinates, meters]);
     return Query;
   },
   outside_h: (itemFieldKey, coordinates, meters) => {
@@ -418,7 +418,7 @@ const Query = {
     if (Number.isFinite(meters) === false) {
       throw Error('outside_h :: meters :: Unexpected non-finite meters');
     }
-    queryList = queryList.filter((item) => item[itemFieldKey].length === 2 && haversine(coordinates[0], coordinates[1], item[itemFieldKey][0], item[itemFieldKey][1]) > meters);
+    queryFilters.push([10, itemFieldKey, coordinates, meters]);
     return Query;
   },
 
@@ -489,7 +489,93 @@ const Query = {
 
   // RESULTS:
   results: () => {
-    if (querySorts.length > 1) {
+    console.log('queryList.length:', queryList.length, 'queryFilters.length:', queryFilters.length);
+    if (queryFilters.length > 0) {
+      queryList = queryList.filter((item) => {
+        for (let i = 0, l = queryFilters.length; i < l; i += 1) {
+          const [filterType, itemFieldKey, valueOrCoordinates, meters] = queryFilters[i];
+          switch (filterType) {
+            case 1: { // gt
+              if (item[itemFieldKey] <= valueOrCoordinates) {
+                return false;
+              }
+              break;
+            }
+            case 2: { // gte
+              if (item[itemFieldKey] < valueOrCoordinates) {
+                return false;
+              }
+              break;
+            }
+            case 3: { // lt
+              if (item[itemFieldKey] >= valueOrCoordinates) {
+                return false;
+              }
+              break;
+            }
+            case 4: { // lte
+              if (item[itemFieldKey] > valueOrCoordinates) {
+                return false;
+              }
+              break;
+            }
+            case 5: { // eq
+              if (item[itemFieldKey] !== valueOrCoordinates) {
+                return false;
+              }
+              break;
+            }
+            case 6: { // neq
+              if (item[itemFieldKey] === valueOrCoordinates) {
+                return false;
+              }
+              break;
+            }
+            case 7: { // includes
+              if (item[itemFieldKey].includes(valueOrCoordinates) === false) {
+                return false;
+              }
+              break;
+            }
+            case 8: { // excludes
+              if (item[itemFieldKey].includes(valueOrCoordinates) === true) {
+                return false;
+              }
+              break;
+            }
+            case 9: { // inside_h
+              if (item[itemFieldKey].length === 0) {
+                return false;
+              }
+              if (item[itemFieldKey].includes(valueOrCoordinates) === true) {
+                return false;
+              }
+              if (haversine(valueOrCoordinates[0], valueOrCoordinates[1], item[itemFieldKey][0], item[itemFieldKey][1]) > meters) {
+                return false;
+              }
+              break;
+            }
+            case 10: { // outside_h
+              if (item[itemFieldKey].length === 0) {
+                return false;
+              }
+              if (item[itemFieldKey].includes(valueOrCoordinates) === true) {
+                return false;
+              }
+              if (haversine(valueOrCoordinates[0], valueOrCoordinates[1], item[itemFieldKey][0], item[itemFieldKey][1]) <= meters) {
+                return false;
+              }
+              break;
+            }
+            default: {
+              throw Error('query :: unexpected unknown query filter type!');
+            }
+          }
+        }
+        return true;
+      });
+    }
+    if (querySorts.length > 0) {
       queryList.sort((a, b) => {
         for (let i = 0, l = querySorts.length; i < l; i += 1) {
           const querySort = querySorts[i];
@@ -866,7 +952,8 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
   // [x] working?
   this.query = () => {
     queryItemSchema = itemSchema;
-    queryList = [];
+    queryList = list;
+    queryFilters = [];
     querySorts = [];
     queryLimit = Infinity;
     queryOffset = 0;
@@ -987,7 +1074,7 @@ function Database(databaseOptions) {
     }
     if (saveInterval === undefined) {
       saveInterval = setInterval(async () => {
-        const tid = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        // const tid = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
         if (saveIsSaving === false) {
           if (saveSkipNext === true) {
             saveSkipNext = false;

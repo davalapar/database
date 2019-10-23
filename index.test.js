@@ -17,6 +17,15 @@ const db = new Database({
       },
       transformFunction: () => {},
     },
+    {
+      label: 'locations',
+      itemSchema: {
+        label: 'string',
+        tags: 'strings',
+        coordinates: 'coordinates',
+      },
+      transformFunction: () => {},
+    },
   ],
 });
 
@@ -100,6 +109,132 @@ test('table: clear, size', () => {
   expect(users.size()).toBe(1);
   users.clear();
   expect(users.size()).toBe(0);
+});
+
+test('query: results', () => {
+  const users = db.table('users');
+  users.add({
+    id: 'alice-id',
+    name: 'alice',
+    age: 0,
+    active: false,
+  });
+  users.add({
+    id: 'bob-id',
+    name: 'bob',
+    age: 1,
+    active: false,
+  });
+  users.add({
+    id: 'cathy-id',
+    name: 'cathy',
+    age: 2,
+    active: true,
+  });
+  users.add({
+    id: 'erica-id',
+    name: 'erica',
+    age: 3,
+    active: true,
+  });
+  users.add({
+    id: 'fiona-id',
+    name: 'fiona',
+    age: 4,
+    active: true,
+  });
+  expect(users.size()).toBe(5);
+  expect(users.query().results().length).toBe(5);
+});
+
+test('query: gt', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .gt('age', 1)
+    .results();
+  expect(results.length).toBe(3);
+});
+
+test('query: gte', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .gte('age', 1)
+    .results();
+  expect(results.length).toBe(4);
+});
+
+test('query: lt', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .lt('age', 1)
+    .results();
+  expect(results.length).toBe(1);
+});
+
+test('query: lte', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .lte('age', 1)
+    .results();
+  expect(results.length).toBe(2);
+});
+
+test('query: eq number', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .eq('age', 0)
+    .results();
+  expect(results.length).toBe(1);
+});
+
+test('query: neq number', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .neq('age', 0)
+    .results();
+  expect(results.length).toBe(4);
+});
+
+test('query: eq string', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .eq('name', 'alice')
+    .results();
+  expect(results.length).toBe(1);
+});
+
+test('query: neq string', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .neq('name', 'alice')
+    .results();
+  expect(results.length).toBe(4);
+});
+
+test('query: eq boolean', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .eq('active', true)
+    .results();
+  expect(results.length).toBe(3);
+});
+
+test('query: neq boolean', () => {
+  const users = db.table('users');
+  expect(users.size()).toBe(5);
+  const results = users.query()
+    .neq('active', true)
+    .results();
+  expect(results.length).toBe(2);
 });
 
 afterAll(() => {
