@@ -10,6 +10,7 @@ let queryItemSchema = {};
 let queryList = [];
 let queryFilters = [];
 let querySorts = [];
+let querySelects = [];
 let queryLimit = Infinity;
 let queryOffset = 0;
 let queryPage = 0;
@@ -17,40 +18,40 @@ let queryPage = 0;
 const Query = {
 
   // SORTS:
-  ascend: (itemFieldKey) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('ascend :: itemFieldKey :: Unexpected non-string');
+  ascend: (field) => {
+    if (typeof field !== 'string') {
+      throw Error('ascend :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('ascend :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('ascend :: field :: Unexpected non-existing field');
     }
-    if (queryItemSchema[itemFieldKey] !== 'string' && queryItemSchema[itemFieldKey] !== 'number') {
-      throw Error('ascend :: itemFieldKey :: Unexpected non-string and non-number field');
+    if (queryItemSchema[field] !== 'string' && queryItemSchema[field] !== 'number') {
+      throw Error('ascend :: field :: Unexpected non-string and non-number field');
     }
-    querySorts.push([itemFieldKey, false]);
+    querySorts.push([field, false]);
     return Query;
   },
-  descend: (itemFieldKey) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('descend :: itemFieldKey :: Unexpected non-string');
+  descend: (field) => {
+    if (typeof field !== 'string') {
+      throw Error('descend :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('descend :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('descend :: field :: Unexpected non-existing field');
     }
-    if (queryItemSchema[itemFieldKey] !== 'string' && queryItemSchema[itemFieldKey] !== 'number') {
-      throw Error('descend :: itemFieldKey :: Unexpected non-string and non-number field');
+    if (queryItemSchema[field] !== 'string' && queryItemSchema[field] !== 'number') {
+      throw Error('descend :: field :: Unexpected non-string and non-number field');
     }
-    querySorts.push([itemFieldKey, true]);
+    querySorts.push([field, true]);
     return Query;
   },
-  ascend_h: (itemFieldKey, coordinates) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('ascend_h :: itemFieldKey :: Unexpected non-string');
+  ascend_h: (field, coordinates) => {
+    if (typeof field !== 'string') {
+      throw Error('ascend_h :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('ascend_h :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('ascend_h :: field :: Unexpected non-existing field');
     }
-    if (queryItemSchema[itemFieldKey] !== 'coordinates') {
+    if (queryItemSchema[field] !== 'coordinates') {
       throw Error('ascend_h :: coordinates :: Unexpected non-coordinates field');
     }
     if (Array.isArray(coordinates) === false) {
@@ -68,17 +69,17 @@ const Query = {
     if (coordinates.length !== 2) {
       throw Error('ascend_h :: coordinates :: Unexpected non-2 length for coordinates');
     }
-    querySorts.push([itemFieldKey, false, coordinates]);
+    querySorts.push([field, false, coordinates]);
     return Query;
   },
-  descend_h: (itemFieldKey, coordinates) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('descend_h :: itemFieldKey :: Unexpected non-string');
+  descend_h: (field, coordinates) => {
+    if (typeof field !== 'string') {
+      throw Error('descend_h :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('descend_h :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('descend_h :: field :: Unexpected non-existing field');
     }
-    if (queryItemSchema[itemFieldKey] !== 'coordinates') {
+    if (queryItemSchema[field] !== 'coordinates') {
       throw Error('descend_h :: coordinates :: Unexpected non-coordinates field');
     }
     if (Array.isArray(coordinates) === false) {
@@ -96,20 +97,20 @@ const Query = {
     if (coordinates.length !== 2) {
       throw Error('descend_h :: coordinates :: Unexpected non-2 length for coordinates');
     }
-    querySorts.push([itemFieldKey, true, coordinates]);
+    querySorts.push([field, true, coordinates]);
     return Query;
   },
 
   // FILTERS:
-  gt: (itemFieldKey, value) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('gt :: itemFieldKey :: Unexpected non-string');
+  gt: (field, value) => {
+    if (typeof field !== 'string') {
+      throw Error('gt :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('gt :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('gt :: field :: Unexpected non-existing field');
     }
-    if (queryItemSchema[itemFieldKey] !== 'number') {
-      throw Error('gt :: itemFieldKey :: Unexpected non-string and non-number field');
+    if (queryItemSchema[field] !== 'number') {
+      throw Error('gt :: field :: Unexpected non-string and non-number field');
     }
     if (typeof value !== 'number') {
       throw Error('gt :: value :: Unexpected non-number value');
@@ -120,18 +121,18 @@ const Query = {
     if (Number.isFinite(value) === false) {
       throw Error('gt :: value :: Unexpected non-finite value');
     }
-    queryFilters.push([1, itemFieldKey, value]);
+    queryFilters.push([1, field, value]);
     return Query;
   },
-  gte: (itemFieldKey, value) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('gte :: itemFieldKey :: Unexpected non-string');
+  gte: (field, value) => {
+    if (typeof field !== 'string') {
+      throw Error('gte :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('gte :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('gte :: field :: Unexpected non-existing field');
     }
-    if (queryItemSchema[itemFieldKey] !== 'number') {
-      throw Error('gte :: itemFieldKey :: Unexpected non-string and non-number field');
+    if (queryItemSchema[field] !== 'number') {
+      throw Error('gte :: field :: Unexpected non-string and non-number field');
     }
     if (typeof value !== 'number') {
       throw Error('gte :: value :: Unexpected non-number value');
@@ -142,18 +143,18 @@ const Query = {
     if (Number.isFinite(value) === false) {
       throw Error('gte :: value :: Unexpected non-finite value');
     }
-    queryFilters.push([2, itemFieldKey, value]);
+    queryFilters.push([2, field, value]);
     return Query;
   },
-  lt: (itemFieldKey, value) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('lt :: itemFieldKey :: Unexpected non-string');
+  lt: (field, value) => {
+    if (typeof field !== 'string') {
+      throw Error('lt :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('lt :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('lt :: field :: Unexpected non-existing field');
     }
-    if (queryItemSchema[itemFieldKey] !== 'number') {
-      throw Error('lt :: itemFieldKey :: Unexpected non-string and non-number field');
+    if (queryItemSchema[field] !== 'number') {
+      throw Error('lt :: field :: Unexpected non-string and non-number field');
     }
     if (typeof value !== 'number') {
       throw Error('lt :: value :: Unexpected non-number value');
@@ -164,18 +165,18 @@ const Query = {
     if (Number.isFinite(value) === false) {
       throw Error('lt :: value :: Unexpected non-finite value');
     }
-    queryFilters.push([3, itemFieldKey, value]);
+    queryFilters.push([3, field, value]);
     return Query;
   },
-  lte: (itemFieldKey, value) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('lte :: itemFieldKey :: Unexpected non-string');
+  lte: (field, value) => {
+    if (typeof field !== 'string') {
+      throw Error('lte :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('lte :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('lte :: field :: Unexpected non-existing field');
     }
-    if (queryItemSchema[itemFieldKey] !== 'number') {
-      throw Error('lte :: itemFieldKey :: Unexpected non-string and non-number field');
+    if (queryItemSchema[field] !== 'number') {
+      throw Error('lte :: field :: Unexpected non-string and non-number field');
     }
     if (typeof value !== 'number') {
       throw Error('lte :: value :: Unexpected non-number value');
@@ -186,17 +187,17 @@ const Query = {
     if (Number.isFinite(value) === false) {
       throw Error('lte :: value :: Unexpected non-finite value');
     }
-    queryFilters.push([4, itemFieldKey, value]);
+    queryFilters.push([4, field, value]);
     return Query;
   },
-  eq: (itemFieldKey, value) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('eq :: itemFieldKey :: Unexpected non-string');
+  eq: (field, value) => {
+    if (typeof field !== 'string') {
+      throw Error('eq :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('eq :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('eq :: field :: Unexpected non-existing field');
     }
-    switch (queryItemSchema[itemFieldKey]) {
+    switch (queryItemSchema[field]) {
       case 'boolean': {
         if (typeof value !== 'boolean') {
           throw Error('eq :: value :: Unexpected non-boolean value');
@@ -222,20 +223,20 @@ const Query = {
         break;
       }
       default: {
-        throw Error('eq :: itemFieldKey :: Unexpected non-string, non-number, and non-boolean field');
+        throw Error('eq :: field :: Unexpected non-string, non-number, and non-boolean field');
       }
     }
-    queryFilters.push([5, itemFieldKey, value]);
+    queryFilters.push([5, field, value]);
     return Query;
   },
-  neq: (itemFieldKey, value) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('neq :: itemFieldKey :: Unexpected non-string');
+  neq: (field, value) => {
+    if (typeof field !== 'string') {
+      throw Error('neq :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('neq :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('neq :: field :: Unexpected non-existing field');
     }
-    switch (queryItemSchema[itemFieldKey]) {
+    switch (queryItemSchema[field]) {
       case 'boolean': {
         if (typeof value !== 'boolean') {
           throw Error('neq :: value :: Unexpected non-boolean value');
@@ -261,20 +262,20 @@ const Query = {
         break;
       }
       default: {
-        throw Error('neq :: itemFieldKey :: Unexpected non-string, non-number, and non-boolean field');
+        throw Error('neq :: field :: Unexpected non-string, non-number, and non-boolean field');
       }
     }
-    queryFilters.push([6, itemFieldKey, value]);
+    queryFilters.push([6, field, value]);
     return Query;
   },
-  includes: (itemFieldKey, value) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('includes :: itemFieldKey :: Unexpected non-string');
+  includes: (field, value) => {
+    if (typeof field !== 'string') {
+      throw Error('includes :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('includes :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('includes :: field :: Unexpected non-existing field');
     }
-    switch (queryItemSchema[itemFieldKey]) {
+    switch (queryItemSchema[field]) {
       case 'booleans': {
         if (typeof value !== 'boolean') {
           throw Error('includes :: value :: Unexpected non-boolean value');
@@ -300,20 +301,20 @@ const Query = {
         break;
       }
       default: {
-        throw Error('includes :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('includes :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
-    queryFilters.push([7, itemFieldKey, value]);
+    queryFilters.push([7, field, value]);
     return Query;
   },
-  excludes: (itemFieldKey, value) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('excludes :: itemFieldKey :: Unexpected non-string');
+  excludes: (field, value) => {
+    if (typeof field !== 'string') {
+      throw Error('excludes :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('excludes :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('excludes :: field :: Unexpected non-existing field');
     }
-    switch (queryItemSchema[itemFieldKey]) {
+    switch (queryItemSchema[field]) {
       case 'booleans': {
         if (typeof value !== 'boolean') {
           throw Error('excludes :: value :: Unexpected non-boolean value');
@@ -339,20 +340,20 @@ const Query = {
         break;
       }
       default: {
-        throw Error('excludes :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('excludes :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
-    queryFilters.push([8, itemFieldKey, value]);
+    queryFilters.push([8, field, value]);
     return Query;
   },
-  inside_h: (itemFieldKey, coordinates, meters) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('inside_h :: itemFieldKey :: Unexpected non-string');
+  inside_h: (field, coordinates, meters) => {
+    if (typeof field !== 'string') {
+      throw Error('inside_h :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('inside_h :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('inside_h :: field :: Unexpected non-existing field');
     }
-    if (queryItemSchema[itemFieldKey] !== 'coordinates') {
+    if (queryItemSchema[field] !== 'coordinates') {
       throw Error('inside_h :: coordinates :: Unexpected non-coordinates field');
     }
     if (Array.isArray(coordinates) === false) {
@@ -382,17 +383,17 @@ const Query = {
     if (meters <= 0) {
       throw Error('outside_h :: meters :: Unexpected less-than-zero meters');
     }
-    queryFilters.push([9, itemFieldKey, coordinates, meters]);
+    queryFilters.push([9, field, coordinates, meters]);
     return Query;
   },
-  outside_h: (itemFieldKey, coordinates, meters) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('outside_h :: itemFieldKey :: Unexpected non-string');
+  outside_h: (field, coordinates, meters) => {
+    if (typeof field !== 'string') {
+      throw Error('outside_h :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('outside_h :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('outside_h :: field :: Unexpected non-existing field');
     }
-    if (queryItemSchema[itemFieldKey] !== 'coordinates') {
+    if (queryItemSchema[field] !== 'coordinates') {
       throw Error('outside_h :: coordinates :: Unexpected non-coordinates field');
     }
     if (Array.isArray(coordinates) === false) {
@@ -422,20 +423,23 @@ const Query = {
     if (meters <= 0) {
       throw Error('outside_h :: meters :: Unexpected less-than-zero meters');
     }
-    queryFilters.push([10, itemFieldKey, coordinates, meters]);
+    queryFilters.push([10, field, coordinates, meters]);
     return Query;
   },
-  includes_some: (itemFieldKey, values) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('includes_some :: itemFieldKey :: Unexpected non-string');
+  includes_some: (field, values) => {
+    if (typeof field !== 'string') {
+      throw Error('includes_some :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('includes_some :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('includes_some :: field :: Unexpected non-existing field');
     }
     if (Array.isArray(values) === false) {
       throw Error('includes_some :: values :: Unexpected non-array values');
     }
-    switch (queryItemSchema[itemFieldKey]) {
+    if (values.length === 0) {
+      throw Error('includes_some :: values :: Unexpected empty-array values');
+    }
+    switch (queryItemSchema[field]) {
       case 'booleans': {
         if (values.every((value) => typeof value === 'boolean') === false) {
           throw Error('includes_some :: values :: Unexpected non-boolean value');
@@ -455,23 +459,26 @@ const Query = {
         break;
       }
       default: {
-        throw Error('includes_some :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('includes_some :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
-    queryFilters.push([11, itemFieldKey, values]);
+    queryFilters.push([11, field, values]);
     return Query;
   },
-  includes_all: (itemFieldKey, values) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('includes_all :: itemFieldKey :: Unexpected non-string');
+  includes_all: (field, values) => {
+    if (typeof field !== 'string') {
+      throw Error('includes_all :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('includes_all :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('includes_all :: field :: Unexpected non-existing field');
     }
     if (Array.isArray(values) === false) {
       throw Error('includes_all :: values :: Unexpected non-array values');
     }
-    switch (queryItemSchema[itemFieldKey]) {
+    if (values.length === 0) {
+      throw Error('includes_all :: values :: Unexpected empty-array values');
+    }
+    switch (queryItemSchema[field]) {
       case 'booleans': {
         if (values.every((value) => typeof value === 'boolean') === false) {
           throw Error('includes_all :: values :: Unexpected non-boolean value');
@@ -491,23 +498,26 @@ const Query = {
         break;
       }
       default: {
-        throw Error('includes_all :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('includes_all :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
-    queryFilters.push([12, itemFieldKey, values]);
+    queryFilters.push([12, field, values]);
     return Query;
   },
-  excludes_some: (itemFieldKey, values) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('excludes_some :: itemFieldKey :: Unexpected non-string');
+  excludes_some: (field, values) => {
+    if (typeof field !== 'string') {
+      throw Error('excludes_some :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('excludes_some :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('excludes_some :: field :: Unexpected non-existing field');
     }
     if (Array.isArray(values) === false) {
       throw Error('excludes_some :: values :: Unexpected non-array values');
     }
-    switch (queryItemSchema[itemFieldKey]) {
+    if (values.length === 0) {
+      throw Error('excludes_some :: values :: Unexpected empty-array values');
+    }
+    switch (queryItemSchema[field]) {
       case 'booleans': {
         if (values.every((value) => typeof value === 'boolean') === false) {
           throw Error('excludes_some :: values :: Unexpected non-boolean value');
@@ -527,23 +537,26 @@ const Query = {
         break;
       }
       default: {
-        throw Error('excludes_some :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('excludes_some :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
-    queryFilters.push([13, itemFieldKey, values]);
+    queryFilters.push([13, field, values]);
     return Query;
   },
-  excludes_all: (itemFieldKey, values) => {
-    if (typeof itemFieldKey !== 'string') {
-      throw Error('excludes_all :: itemFieldKey :: Unexpected non-string');
+  excludes_all: (field, values) => {
+    if (typeof field !== 'string') {
+      throw Error('excludes_all :: field :: Unexpected non-string');
     }
-    if (queryItemSchema[itemFieldKey] === undefined) {
-      throw Error('excludes_all :: itemFieldKey :: Unexpected non-existing field');
+    if (queryItemSchema[field] === undefined) {
+      throw Error('excludes_all :: field :: Unexpected non-existing field');
     }
     if (Array.isArray(values) === false) {
       throw Error('excludes_all :: values :: Unexpected non-array values');
     }
-    switch (queryItemSchema[itemFieldKey]) {
+    if (values.length === 0) {
+      throw Error('excludes_all :: values :: Unexpected empty-array values');
+    }
+    switch (queryItemSchema[field]) {
       case 'booleans': {
         if (values.every((value) => typeof value === 'boolean') === false) {
           throw Error('excludes_all :: values :: Unexpected non-boolean value');
@@ -563,10 +576,10 @@ const Query = {
         break;
       }
       default: {
-        throw Error('excludes_all :: itemFieldKey :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('excludes_all :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
-    queryFilters.push([14, itemFieldKey, values]);
+    queryFilters.push([14, field, values]);
     return Query;
   },
 
@@ -635,106 +648,140 @@ const Query = {
     return Query;
   },
 
+  // SELECT & DESELECT
+  select: (fields) => {
+    if (Array.isArray(fields) === false) {
+      throw Error('select :: fields :: unexpected non-array fields');
+    }
+    if (fields.length === 0) {
+      throw Error('select :: fields :: unexpected empty-array fields');
+    }
+    if (fields.every((field) => typeof field === 'string') === false) {
+      throw Error('select :: fields :: unexpected non-string field');
+    }
+    if (fields.every((field) => queryItemSchema[field] !== undefined) === false) {
+      throw Error('select :: fields :: Unexpected non-existing field');
+    }
+    querySelects = fields;
+    return Query;
+  },
+  deselect: (fields) => {
+    if (Array.isArray(fields) === false) {
+      throw Error('deselect :: fields :: unexpected non-array fields');
+    }
+    if (fields.length === 0) {
+      throw Error('deselect :: fields :: unexpected empty-array fields');
+    }
+    if (fields.every((field) => typeof field === 'string') === false) {
+      throw Error('deselect :: fields :: unexpected non-string field');
+    }
+    if (fields.every((field) => queryItemSchema[field] !== undefined) === false) {
+      throw Error('select :: fields :: Unexpected non-existing field');
+    }
+    querySelects = Object.keys(queryItemSchema).filter((field) => fields.includes(field) === false);
+    return Query;
+  },
+
   // RESULTS:
   results: () => {
     // console.log('queryList.length:', queryList.length, 'queryFilters.length:', queryFilters.length);
     if (queryFilters.length > 0) {
       queryList = queryList.filter((item) => {
         for (let i = 0, l = queryFilters.length; i < l; i += 1) {
-          const [filterType, itemFieldKey, valueOrCoordinatesOrValues, meters] = queryFilters[i];
+          const [filterType, field, valueOrCoordinatesOrValues, meters] = queryFilters[i];
           switch (filterType) {
             case 1: { // gt
-              if (item[itemFieldKey] <= valueOrCoordinatesOrValues) {
+              if (item[field] <= valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 2: { // gte
-              if (item[itemFieldKey] < valueOrCoordinatesOrValues) {
+              if (item[field] < valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 3: { // lt
-              if (item[itemFieldKey] >= valueOrCoordinatesOrValues) {
+              if (item[field] >= valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 4: { // lte
-              if (item[itemFieldKey] > valueOrCoordinatesOrValues) {
+              if (item[field] > valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 5: { // eq
-              if (item[itemFieldKey] !== valueOrCoordinatesOrValues) {
+              if (item[field] !== valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 6: { // neq
-              if (item[itemFieldKey] === valueOrCoordinatesOrValues) {
+              if (item[field] === valueOrCoordinatesOrValues) {
                 return false;
               }
               break;
             }
             case 7: { // includes
-              if (item[itemFieldKey].includes(valueOrCoordinatesOrValues) === false) {
+              if (item[field].includes(valueOrCoordinatesOrValues) === false) {
                 return false;
               }
               break;
             }
             case 8: { // excludes
-              if (item[itemFieldKey].includes(valueOrCoordinatesOrValues) === true) {
+              if (item[field].includes(valueOrCoordinatesOrValues) === true) {
                 return false;
               }
               break;
             }
             case 9: { // inside_h
-              if (item[itemFieldKey].length === 0) {
+              if (item[field].length === 0) {
                 return false;
               }
-              if (item[itemFieldKey].includes(valueOrCoordinatesOrValues) === true) {
+              if (item[field].includes(valueOrCoordinatesOrValues) === true) {
                 return false;
               }
-              if (haversine(valueOrCoordinatesOrValues[0], valueOrCoordinatesOrValues[1], item[itemFieldKey][0], item[itemFieldKey][1]) > meters) {
+              if (haversine(valueOrCoordinatesOrValues[0], valueOrCoordinatesOrValues[1], item[field][0], item[field][1]) > meters) {
                 return false;
               }
               break;
             }
             case 10: { // outside_h
-              if (item[itemFieldKey].length === 0) {
+              if (item[field].length === 0) {
                 return false;
               }
-              if (item[itemFieldKey].includes(valueOrCoordinatesOrValues) === true) {
+              if (item[field].includes(valueOrCoordinatesOrValues) === true) {
                 return false;
               }
-              if (haversine(valueOrCoordinatesOrValues[0], valueOrCoordinatesOrValues[1], item[itemFieldKey][0], item[itemFieldKey][1]) <= meters) {
+              if (haversine(valueOrCoordinatesOrValues[0], valueOrCoordinatesOrValues[1], item[field][0], item[field][1]) <= meters) {
                 return false;
               }
               break;
             }
             case 11: { // includes_some
-              if (valueOrCoordinatesOrValues.some((value) => item[itemFieldKey].includes(value)) === false) {
+              if (valueOrCoordinatesOrValues.some((value) => item[field].includes(value)) === false) {
                 return false;
               }
               break;
             }
             case 12: { // includes_all
-              if (valueOrCoordinatesOrValues.every((value) => item[itemFieldKey].includes(value)) === false) {
+              if (valueOrCoordinatesOrValues.every((value) => item[field].includes(value)) === false) {
                 return false;
               }
               break;
             }
             case 13: { // excludes_some
-              if (valueOrCoordinatesOrValues.some((value) => item[itemFieldKey].includes(value)) === true) {
+              if (valueOrCoordinatesOrValues.some((value) => item[field].includes(value)) === true) {
                 return false;
               }
               break;
             }
             case 14: { // excludes_all
-              if (valueOrCoordinatesOrValues.every((value) => item[itemFieldKey].includes(value)) === true) {
+              if (valueOrCoordinatesOrValues.every((value) => item[field].includes(value)) === true) {
                 return false;
               }
               break;
@@ -751,39 +798,39 @@ const Query = {
       queryList.sort((a, b) => {
         for (let i = 0, l = querySorts.length; i < l; i += 1) {
           const querySort = querySorts[i];
-          const [itemFieldKey, descend, coordinates] = querySort;
+          const [field, descend, coordinates] = querySort;
           if (coordinates === undefined) {
             // type: string or number
-            if (a[itemFieldKey] === b[itemFieldKey]) {
+            if (a[field] === b[field]) {
               continue; // eslint-disable-line no-continue
             }
-            if (queryItemSchema[itemFieldKey] === 'string') {
+            if (queryItemSchema[field] === 'string') {
               return descend
-                ? b[itemFieldKey].localeCompare(a[itemFieldKey])
-                : a[itemFieldKey].localeCompare(b[itemFieldKey]);
+                ? b[field].localeCompare(a[field])
+                : a[field].localeCompare(b[field]);
             }
-            if (queryItemSchema[itemFieldKey] === 'number') {
+            if (queryItemSchema[field] === 'number') {
               return descend
-                ? b[itemFieldKey] - a[itemFieldKey]
-                : a[itemFieldKey] - b[itemFieldKey];
+                ? b[field] - a[field]
+                : a[field] - b[field];
             }
           } else {
             // type: coordinates
-            if (a[itemFieldKey].length === 0 && b[itemFieldKey].length === 0) {
+            if (a[field].length === 0 && b[field].length === 0) {
               return 0;
             }
-            if (a[itemFieldKey].length === 0) {
+            if (a[field].length === 0) {
               return -1;
             }
-            if (b[itemFieldKey].length === 0) {
+            if (b[field].length === 0) {
               return 1;
             }
-            if (a[itemFieldKey][0] === b[itemFieldKey][0] && a[itemFieldKey][1] === b[itemFieldKey][1]) {
+            if (a[field][0] === b[field][0] && a[field][1] === b[field][1]) {
               return 0;
             }
             return descend
-              ? haversine(coordinates[0], coordinates[1], b[itemFieldKey][0], b[itemFieldKey][1]) - haversine(coordinates[0], coordinates[1], a[itemFieldKey][0], a[itemFieldKey][1])
-              : haversine(coordinates[0], coordinates[1], a[itemFieldKey][0], a[itemFieldKey][1]) - haversine(coordinates[0], coordinates[1], b[itemFieldKey][0], b[itemFieldKey][1]);
+              ? haversine(coordinates[0], coordinates[1], b[field][0], b[field][1]) - haversine(coordinates[0], coordinates[1], a[field][0], a[field][1])
+              : haversine(coordinates[0], coordinates[1], a[field][0], a[field][1]) - haversine(coordinates[0], coordinates[1], b[field][0], b[field][1]);
           }
         }
         return 0;
@@ -795,6 +842,28 @@ const Query = {
       queryList = queryList.slice(queryLimit * (queryPage - 1), (queryLimit * (queryPage - 1)) + queryLimit);
     } else {
       queryList = queryList.slice(0, queryLimit);
+    }
+    if (querySelects.length > 0) {
+      return queryList.map((item) => {
+        const itemCopy = {};
+        for (let i = 0, l = querySelects.length; i < l; i += 1) {
+          const field = querySelects[i];
+          switch (queryItemSchema[field]) {
+            case 'strings':
+            case 'numbers':
+            case 'booleans':
+            case 'coordinates': {
+              itemCopy[field] = copy(item[querySelects[i]]);
+              break;
+            }
+            default: {
+              itemCopy[field] = item[querySelects[i]];
+              break;
+            }
+          }
+        }
+        return itemCopy;
+      });
     }
     return copy(queryList);
   },
@@ -820,86 +889,86 @@ const validItemFieldTypes = [
   'coordinates',
 ];
 
-const validateItem = (method, itemFieldKeys, itemSchema, item) => {
+const validateItem = (method, fields, itemSchema, item) => {
   if (typeof item !== 'object' || item === null) {
     throw Error('table :: item :: unexpected non-object');
   }
-  for (let i = 0, l = itemFieldKeys.length; i < l; i += 1) {
-    const itemFieldKey = itemFieldKeys[i];
-    const itemFieldType = itemSchema[itemFieldKey];
+  for (let i = 0, l = fields.length; i < l; i += 1) {
+    const field = fields[i];
+    const itemFieldType = itemSchema[field];
     switch (itemFieldType) {
       case 'boolean': {
-        if (typeof item[itemFieldKey] !== 'boolean') {
-          throw Error(`table :: ${method} :: unexpected non-boolean value for "${itemFieldKey}" field`);
+        if (typeof item[field] !== 'boolean') {
+          throw Error(`table :: ${method} :: unexpected non-boolean value for "${field}" field`);
         }
         break;
       }
       case 'string': {
-        if (typeof item[itemFieldKey] !== 'string') {
-          throw Error(`table :: ${method} :: unexpected non-string value for "${itemFieldKey}" field`);
+        if (typeof item[field] !== 'string') {
+          throw Error(`table :: ${method} :: unexpected non-string value for "${field}" field`);
         }
         break;
       }
       case 'number': {
-        if (typeof item[itemFieldKey] !== 'number') {
-          throw Error(`table :: ${method} :: unexpected non-number value for "${itemFieldKey}" field`);
+        if (typeof item[field] !== 'number') {
+          throw Error(`table :: ${method} :: unexpected non-number value for "${field}" field`);
         }
-        if (Number.isNaN(item[itemFieldKey]) === true) {
-          throw Error(`table :: ${method} :: unexpected NaN value for "${itemFieldKey}" field`);
+        if (Number.isNaN(item[field]) === true) {
+          throw Error(`table :: ${method} :: unexpected NaN value for "${field}" field`);
         }
-        if (Number.isFinite(item[itemFieldKey]) === false) {
-          throw Error(`table :: ${method} :: unexpected non-finite value for "${itemFieldKey}" field`);
+        if (Number.isFinite(item[field]) === false) {
+          throw Error(`table :: ${method} :: unexpected non-finite value for "${field}" field`);
         }
         break;
       }
       case 'booleans': {
-        if (Array.isArray(item[itemFieldKey]) === false) {
-          throw Error(`table :: ${method} :: unexpected non-array value for "${itemFieldKey}" field`);
+        if (Array.isArray(item[field]) === false) {
+          throw Error(`table :: ${method} :: unexpected non-array value for "${field}" field`);
         }
-        if (item[itemFieldKey].every((value) => typeof value === 'boolean') === false) {
-          throw Error(`table :: ${method} :: unexpected non-boolean value in "${itemFieldKey}" array field`);
+        if (item[field].every((value) => typeof value === 'boolean') === false) {
+          throw Error(`table :: ${method} :: unexpected non-boolean value in "${field}" array field`);
         }
         break;
       }
       case 'strings': {
-        if (Array.isArray(item[itemFieldKey]) === false) {
-          throw Error(`table :: ${method} :: unexpected non-array value for "${itemFieldKey}" field`);
+        if (Array.isArray(item[field]) === false) {
+          throw Error(`table :: ${method} :: unexpected non-array value for "${field}" field`);
         }
-        if (item[itemFieldKey].every((value) => typeof value === 'string') === false) {
-          throw Error(`table :: ${method} :: unexpected non-string value in "${itemFieldKey}" array field`);
+        if (item[field].every((value) => typeof value === 'string') === false) {
+          throw Error(`table :: ${method} :: unexpected non-string value in "${field}" array field`);
         }
         break;
       }
       case 'numbers': {
-        if (Array.isArray(item[itemFieldKey]) === false) {
-          throw Error(`table :: ${method} :: unexpected non-array value for "${itemFieldKey}" field`);
+        if (Array.isArray(item[field]) === false) {
+          throw Error(`table :: ${method} :: unexpected non-array value for "${field}" field`);
         }
-        if (item[itemFieldKey].every((value) => typeof value === 'number') === false) {
-          throw Error(`table :: ${method} :: unexpected non-number value in "${itemFieldKey}" array field`);
+        if (item[field].every((value) => typeof value === 'number') === false) {
+          throw Error(`table :: ${method} :: unexpected non-number value in "${field}" array field`);
         }
-        if (item[itemFieldKey].every((value) => Number.isNaN(value) === false) === false) {
-          throw Error(`table :: ${method} :: unexpected NaN value in "${itemFieldKey}" array field`);
+        if (item[field].every((value) => Number.isNaN(value) === false) === false) {
+          throw Error(`table :: ${method} :: unexpected NaN value in "${field}" array field`);
         }
-        if (item[itemFieldKey].every((value) => Number.isFinite(value) === true) === false) {
-          throw Error(`table :: ${method} :: unexpected non-finite value in "${itemFieldKey}" array field`);
+        if (item[field].every((value) => Number.isFinite(value) === true) === false) {
+          throw Error(`table :: ${method} :: unexpected non-finite value in "${field}" array field`);
         }
         break;
       }
       case 'coordinates': {
-        if (Array.isArray(item[itemFieldKey]) === false) {
-          throw Error(`table :: ${method} :: unexpected non-array value for "${itemFieldKey}" field`);
+        if (Array.isArray(item[field]) === false) {
+          throw Error(`table :: ${method} :: unexpected non-array value for "${field}" field`);
         }
-        if (item[itemFieldKey].every((value) => typeof value === 'number') === false) {
-          throw Error(`table :: ${method} :: unexpected non-number value in "${itemFieldKey}" array field`);
+        if (item[field].every((value) => typeof value === 'number') === false) {
+          throw Error(`table :: ${method} :: unexpected non-number value in "${field}" array field`);
         }
-        if (item[itemFieldKey].every((value) => Number.isNaN(value) === false) === false) {
-          throw Error(`table :: ${method} :: unexpected NaN value in "${itemFieldKey}" array field`);
+        if (item[field].every((value) => Number.isNaN(value) === false) === false) {
+          throw Error(`table :: ${method} :: unexpected NaN value in "${field}" array field`);
         }
-        if (item[itemFieldKey].every((value) => Number.isFinite(value) === true) === false) {
-          throw Error(`table :: ${method} :: unexpected non-finite value in "${itemFieldKey}" array field`);
+        if (item[field].every((value) => Number.isFinite(value) === true) === false) {
+          throw Error(`table :: ${method} :: unexpected non-finite value in "${field}" array field`);
         }
-        if (item[itemFieldKey].length !== 2) {
-          throw Error(`table :: ${method} :: unexpected array length for "${itemFieldKey}" field`);
+        if (item[field].length !== 2) {
+          throw Error(`table :: ${method} :: unexpected array length for "${field}" field`);
         }
         break;
       }
@@ -914,24 +983,24 @@ const validateSchema = (itemSchema) => {
   if (typeof itemSchema !== 'object' || itemSchema === null) {
     throw Error('table :: validateSchema :: unexpected non-object');
   }
-  const itemFieldKeys = ['id', ...Object.keys(itemSchema).sort((a, b) => a.localeCompare(b))];
-  for (let i = 0, l = itemFieldKeys.length; i < l; i += 1) {
-    const itemFieldKey = itemFieldKeys[i];
-    if (itemFieldKey === 'id') {
+  const fields = ['id', ...Object.keys(itemSchema).sort((a, b) => a.localeCompare(b))];
+  for (let i = 0, l = fields.length; i < l; i += 1) {
+    const field = fields[i];
+    if (field === 'id') {
       continue; // eslint-disable-line no-continue
     }
-    const itemFieldType = itemSchema[itemFieldKey];
+    const itemFieldType = itemSchema[field];
     if (validItemFieldTypes.includes(itemFieldType) === false) {
       throw Error('table :: validateSchema :: unexpected field type');
     }
   }
   const itemSchemaCopy = copy(itemSchema);
   itemSchemaCopy.id = 'string';
-  return [itemFieldKeys, itemSchemaCopy];
+  return [fields, itemSchemaCopy];
 };
 
 
-function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
+function Table(label, fields, itemSchema, transformFunction, database) {
   let list = [];
   let dictionary = {};
   this[pointerLabel] = label;
@@ -940,7 +1009,7 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
   this[pointerOldPath] = `./tables/${label}-old.db`;
   this[pointerTempPath] = `./tables/${label}-temp.db`;
   this[pointerCurrentPath] = `./tables/${label}-current.db`;
-  const itemFieldsStringified = JSON.stringify(itemFieldKeys);
+  const itemFieldsStringified = JSON.stringify(fields);
   this[pointerItemFieldsStringified] = itemFieldsStringified;
 
   if (fs.existsSync(this[pointerCurrentPath]) === true) {
@@ -949,14 +1018,14 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     if (Array.isArray(decoded) === false) {
       throw Error('table :: load :: unexpected non-array "decoded" data.');
     }
-    const [loadedItemFieldKeysStringified, loadedList] = decoded;
-    if (typeof loadedItemFieldKeysStringified !== 'string') {
-      throw Error('table :: load :: unexpected non-string "loadedItemFieldKeysStringified" data.');
+    const [loadedfieldsStringified, loadedList] = decoded;
+    if (typeof loadedfieldsStringified !== 'string') {
+      throw Error('table :: load :: unexpected non-string "loadedfieldsStringified" data.');
     }
     if (Array.isArray(loadedList) === false) {
       throw Error('table :: load :: unexpected non-array "loadedList" data.');
     }
-    if (loadedItemFieldKeysStringified === itemFieldsStringified) {
+    if (loadedfieldsStringified === itemFieldsStringified) {
       // console.log('table :: load :: loaded schema match ok');
       list = loadedList;
       this[pointerList] = list;
@@ -975,7 +1044,7 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
       for (let i = 0, l = loadedList.length; i < l; i += 1) {
         const item = loadedList[i];
         const transformedItem = transformFunction(item);
-        validateItem('load', itemFieldKeys, itemSchema, item);
+        validateItem('load', fields, itemSchema, item);
         list[i] = transformedItem;
         dictionary[transformedItem.id] = transformedItem;
       }
@@ -1003,7 +1072,7 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
   };
 
   this.add = (newItem) => {
-    validateItem('add', itemFieldKeys, itemSchema, newItem);
+    validateItem('add', fields, itemSchema, newItem);
     const { id } = newItem;
     if (typeof id !== 'string' || id === '') {
       throw Error('table :: add :: unexpected non-string / empty string "id"');
@@ -1020,7 +1089,7 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
   };
 
   this.update = (updatedItem) => {
-    validateItem('update', itemFieldKeys, itemSchema, updatedItem);
+    validateItem('update', fields, itemSchema, updatedItem);
     const { id } = updatedItem;
     if (typeof id !== 'string' || id === '') {
       throw Error('table :: update :: unexpected non-string / empty string "id"');
@@ -1064,41 +1133,41 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     return this;
   };
 
-  this.increment = (itemId, itemFieldKey) => {
+  this.increment = (itemId, field) => {
     if (typeof itemId !== 'string') {
       throw Error('table :: increment :: unexpected non-string itemId');
     }
     if (dictionary[itemId] === undefined) {
       throw Error(`table :: increment :: unexpected non-existing id "${itemId}"`);
     }
-    if (itemFieldKeys.includes(itemFieldKey) === false) {
-      throw Error(`table :: increment :: unexpected field "${itemFieldKey}"`);
+    if (fields.includes(field) === false) {
+      throw Error(`table :: increment :: unexpected field "${field}"`);
     }
-    if (itemSchema[itemFieldKey] !== 'number') {
-      throw Error(`table :: increment :: unexpected non-number field "${itemFieldKey}"`);
+    if (itemSchema[field] !== 'number') {
+      throw Error(`table :: increment :: unexpected non-number field "${field}"`);
     }
     const existingItem = dictionary[itemId];
-    existingItem[itemFieldKey] += 1;
+    existingItem[field] += 1;
     this[pointerModified] = true;
     database.save();
     return this;
   };
 
-  this.decrement = (itemId, itemFieldKey) => {
+  this.decrement = (itemId, field) => {
     if (typeof itemId !== 'string') {
       throw Error('table :: decrement :: unexpected non-string itemId');
     }
     if (dictionary[itemId] === undefined) {
       throw Error(`table :: decrement :: unexpected non-existing id "${itemId}"`);
     }
-    if (itemFieldKeys.includes(itemFieldKey) === false) {
-      throw Error(`table :: decrement :: unexpected field "${itemFieldKey}"`);
+    if (fields.includes(field) === false) {
+      throw Error(`table :: decrement :: unexpected field "${field}"`);
     }
-    if (itemSchema[itemFieldKey] !== 'number') {
-      throw Error(`table :: decrement :: unexpected non-number field "${itemFieldKey}"`);
+    if (itemSchema[field] !== 'number') {
+      throw Error(`table :: decrement :: unexpected non-number field "${field}"`);
     }
     const existingItem = dictionary[itemId];
-    existingItem[itemFieldKey] -= 1;
+    existingItem[field] -= 1;
     this[pointerModified] = true;
     database.save();
     return this;
@@ -1116,6 +1185,7 @@ function Table(label, itemFieldKeys, itemSchema, transformFunction, database) {
     queryList = list;
     queryFilters = [];
     querySorts = [];
+    querySelects = [];
     queryLimit = Infinity;
     queryOffset = 0;
     queryPage = 0;
@@ -1184,8 +1254,8 @@ function Database(databaseOptions) {
     if (transformFunction !== undefined && typeof transformFunction !== 'function') {
       throw Error('database :: tableConfig :: unexpected non-function');
     }
-    const [itemFieldKeys, itemSchemaCopy] = validateSchema(itemSchema);
-    const table = new Table(label, itemFieldKeys, itemSchemaCopy, transformFunction, this);
+    const [fields, itemSchemaCopy] = validateSchema(itemSchema);
+    const table = new Table(label, fields, itemSchemaCopy, transformFunction, this);
     list[i] = table;
     dictionary[table.label()] = table;
   }

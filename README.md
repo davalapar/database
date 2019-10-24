@@ -79,8 +79,8 @@ const users = db.table('users');
 - `table.update(updatedItem) -> updatedItem`
 - `table.get(itemId) -> item`
 - `table.delete(itemId) -> table`
-- `table.increment(itemId, itemFieldKey) -> table`
-- `table.decrement(itemId, itemFieldKey) -> table`
+- `table.increment(itemId, field) -> table`
+- `table.decrement(itemId, field) -> table`
 - `table.has(itemId) -> boolean`
 - `table.query() -> query`
 - `table.size() -> number`
@@ -92,27 +92,29 @@ const users = db.table('users');
 const items = users.query().results();
 ```
 
-- `query.ascend(itemFieldKey) -> query`
-- `query.descend(itemFieldKey) -> query`
-- `query.ascend_h(itemFieldKey, coordinates) -> query`
-- `query.descend_h(itemFieldKey, coordinates) -> query`
-- `query.gt(itemFieldKey, value) -> query`
-- `query.gte(itemFieldKey, value) -> query`
-- `query.lt(itemFieldKey, value) -> query`
-- `query.lte(itemFieldKey, value) -> query`
-- `query.eq(itemFieldKey, value) -> query`
-- `query.neq(itemFieldKey, value) -> query`
-- `query.includes(itemFieldKey, value) -> query`
-- `query.excludes(itemFieldKey, value) -> query`
-- `query.includes_some(itemFieldKey, values) -> query`
-- `query.includes_all(itemFieldKey, values) -> query`
-- `query.excludes_some(itemFieldKey, values) -> query`
-- `query.excludes_all(itemFieldKey, values) -> query`
-- `query.inside_h(itemFieldKey, coordinates, meters) -> query`
-- `query.outside_h(itemFieldKey, coordinates, meters) -> query`
+- `query.ascend(field) -> query`
+- `query.descend(field) -> query`
+- `query.ascend_h(field, coordinates) -> query`
+- `query.descend_h(field, coordinates) -> query`
+- `query.gt(field, value) -> query`
+- `query.gte(field, value) -> query`
+- `query.lt(field, value) -> query`
+- `query.lte(field, value) -> query`
+- `query.eq(field, value) -> query`
+- `query.neq(field, value) -> query`
+- `query.includes(field, value) -> query`
+- `query.excludes(field, value) -> query`
+- `query.includes_some(field, values) -> query`
+- `query.includes_all(field, values) -> query`
+- `query.excludes_some(field, values) -> query`
+- `query.excludes_all(field, values) -> query`
+- `query.inside_h(field, coordinates, meters) -> query`
+- `query.outside_h(field, coordinates, meters) -> query`
 - `query.limit(value) -> query`
 - `query.offset(value) -> query`
 - `query.page(value) -> query`
+- `query.select(fields) -> query`
+- `query.deselect(fields) -> query`
 - `query.results() -> items[]`
 
 #### License

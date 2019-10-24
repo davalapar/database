@@ -423,6 +423,25 @@ test('query: filter excludes_all', () => {
     .results();
   expect(results.length).toBe(2);
 });
+test('query: select fields', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .select(['label', 'tags'])
+    .results();
+  expect(results[0].coordinates).toBe(undefined);
+  expect(results.length).toBe(4);
+});
+test('query: deselect fields', () => {
+  const places = db.table('places');
+  expect(places.size()).toBe(4);
+  const results = places.query()
+    .deselect(['label', 'tags'])
+    .results();
+  expect(results[0].label).toBe(undefined);
+  expect(results[0].tags).toBe(undefined);
+  expect(results.length).toBe(4);
+});
 
 afterAll(() => {
   const users = db.table('users');
