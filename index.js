@@ -869,15 +869,15 @@ const Query = {
   },
 };
 
-const pointerLabel = Symbol('pointerLabel');
-const pointerModified = Symbol('pointerModified');
-const pointerList = Symbol('pointerList');
-const pointerOldPath = Symbol('pointerOldPath');
-const pointerTempPath = Symbol('pointerTempPath');
-const pointerCurrentPath = Symbol('pointerCurrentPath');
-const pointerItemFieldsStringified = Symbol('pointerItemFieldsStringified');
-const pointerEncodeFn = Symbol('pointerEncodeFn');
-const pointerDecodeFn = Symbol('pointerDecodeFn');
+const internalLabel = Symbol('internalLabel');
+const internalModified = Symbol('internalModified');
+const internalList = Symbol('internalList');
+const internalOldPath = Symbol('internalOldPath');
+const internalTempPath = Symbol('internalTempPath');
+const internalCurrentPath = Symbol('internalCurrentPath');
+const internalItemFieldsStringified = Symbol('internalItemFieldsStringified');
+const internalEncodeFn = Symbol('internalEncodeFn');
+const internalDecodeFn = Symbol('internalDecodeFn');
 
 const validItemFieldTypes = [
   'boolean',
@@ -1003,18 +1003,18 @@ const validateSchema = (itemSchema) => {
 function Table(label, fields, itemSchema, transformFunction, database) {
   let list = [];
   let dictionary = {};
-  this[pointerLabel] = label;
-  this[pointerModified] = false;
-  this[pointerList] = list;
-  this[pointerOldPath] = `./tables/${label}-old.db`;
-  this[pointerTempPath] = `./tables/${label}-temp.db`;
-  this[pointerCurrentPath] = `./tables/${label}-current.db`;
+  this[internalLabel] = label;
+  this[internalModified] = false;
+  this[internalList] = list;
+  this[internalOldPath] = `./tables/${label}-old.db`;
+  this[internalTempPath] = `./tables/${label}-temp.db`;
+  this[internalCurrentPath] = `./tables/${label}-current.db`;
   const itemFieldsStringified = JSON.stringify(fields);
-  this[pointerItemFieldsStringified] = itemFieldsStringified;
+  this[internalItemFieldsStringified] = itemFieldsStringified;
 
-  if (fs.existsSync(this[pointerCurrentPath]) === true) {
-    const encoded = fs.readFileSync(this[pointerCurrentPath]);
-    const decoded = database[pointerDecodeFn](encoded);
+  if (fs.existsSync(this[internalCurrentPath]) === true) {
+    const encoded = fs.readFileSync(this[internalCurrentPath]);
+    const decoded = database[internalDecodeFn](encoded);
     if (Array.isArray(decoded) === false) {
       throw Error('table :: load :: unexpected non-array "decoded" data.');
     }
@@ -1028,7 +1028,7 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     if (loadedfieldsStringified === itemFieldsStringified) {
       // console.log('table :: load :: loaded schema match ok');
       list = loadedList;
-      this[pointerList] = list;
+      this[internalList] = list;
       for (let i = 0, l = loadedList.length; i < l; i += 1) {
         const item = loadedList[i];
         dictionary[item.id] = item;
@@ -1040,7 +1040,7 @@ function Table(label, fields, itemSchema, transformFunction, database) {
         throw Error('table :: load :: "transformFunction" is now required and must be a function.');
       }
       list = new Array(loadedList.length);
-      this[pointerList] = list;
+      this[internalList] = list;
       for (let i = 0, l = loadedList.length; i < l; i += 1) {
         const item = loadedList[i];
         const transformedItem = transformFunction(item);
@@ -1065,8 +1065,8 @@ function Table(label, fields, itemSchema, transformFunction, database) {
   this.clear = () => {
     list = [];
     dictionary = {};
-    this[pointerModified] = true;
-    this[pointerList] = list;
+    this[internalModified] = true;
+    this[internalList] = list;
     database.save();
     return this;
   };
@@ -1083,7 +1083,7 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     const duplicateItem = copy(newItem);
     list.push(duplicateItem);
     dictionary[id] = duplicateItem;
-    this[pointerModified] = true;
+    this[internalModified] = true;
     database.save();
     return newItem;
   };
@@ -1102,7 +1102,7 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     const duplicateItem = copy(updatedItem);
     list[existingItemIndex] = duplicateItem;
     dictionary[id] = duplicateItem;
-    this[pointerModified] = true;
+    this[internalModified] = true;
     database.save();
     return updatedItem;
   };
@@ -1128,7 +1128,7 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     const existingItemIndex = list.indexOf(existingItem);
     list.splice(existingItemIndex, 1);
     delete dictionary[itemId];
-    this[pointerModified] = true;
+    this[internalModified] = true;
     database.save();
     return this;
   };
@@ -1148,7 +1148,7 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     }
     const existingItem = dictionary[itemId];
     existingItem[field] += 1;
-    this[pointerModified] = true;
+    this[internalModified] = true;
     database.save();
     return this;
   };
@@ -1168,7 +1168,7 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     }
     const existingItem = dictionary[itemId];
     existingItem[field] -= 1;
-    this[pointerModified] = true;
+    this[internalModified] = true;
     database.save();
     return this;
   };
@@ -1228,15 +1228,15 @@ function Database(databaseOptions) {
   // set encoderFn and decoderFn
   if (saveCompressionAlgo === 'gzip') {
     const asyncGzip = util.promisify(zlib.gzip);
-    this[pointerEncodeFn] = (decoded) => asyncGzip(JSON.stringify(decoded));
-    this[pointerDecodeFn] = (encoded) => JSON.parse(zlib.gunzipSync(encoded));
+    this[internalEncodeFn] = (decoded) => asyncGzip(JSON.stringify(decoded));
+    this[internalDecodeFn] = (encoded) => JSON.parse(zlib.gunzipSync(encoded));
   } else if (saveCompressionAlgo === 'brotli') {
     const asyncBrotliCompress = util.promisify(zlib.brotliCompress);
-    this[pointerEncodeFn] = (decoded) => asyncBrotliCompress(JSON.stringify(decoded));
-    this[pointerDecodeFn] = (encoded) => JSON.parse(zlib.brotliDecompressSync(encoded));
+    this[internalEncodeFn] = (decoded) => asyncBrotliCompress(JSON.stringify(decoded));
+    this[internalDecodeFn] = (encoded) => JSON.parse(zlib.brotliDecompressSync(encoded));
   } else {
-    this[pointerEncodeFn] = (decoded) => JSON.stringify(decoded);
-    this[pointerDecodeFn] = (encoded) => JSON.parse(encoded);
+    this[internalEncodeFn] = (decoded) => JSON.stringify(decoded);
+    this[internalDecodeFn] = (encoded) => JSON.parse(encoded);
   }
 
   if (fs.existsSync('./tables') === false) {
@@ -1274,19 +1274,19 @@ function Database(databaseOptions) {
 
   let saveIsSaving = false;
   const internalSave = async () => {
-    const tables = list.filter((table) => table[pointerModified] === true);
+    const tables = list.filter((table) => table[internalModified] === true);
     const tableContents = await Promise.all(tables.map(async (table, index) => {
-      const tableContent = await this[pointerEncodeFn]([table[pointerItemFieldsStringified], table[pointerList]]);
-      tables[index][pointerModified] = false;
+      const tableContent = await this[internalEncodeFn]([table[internalItemFieldsStringified], table[internalList]]);
+      tables[index][internalModified] = false;
       return tableContent;
     }));
     saveIsSaving = true;
     await Promise.all(tables.map(async (table, index) => {
-      await fs.promises.writeFile(table[pointerTempPath], tableContents[index]);
-      if (fs.existsSync(table[pointerCurrentPath]) === true) {
-        await fs.promises.rename(table[pointerCurrentPath], table[pointerOldPath]);
+      await fs.promises.writeFile(table[internalTempPath], tableContents[index]);
+      if (fs.existsSync(table[internalCurrentPath]) === true) {
+        await fs.promises.rename(table[internalCurrentPath], table[internalOldPath]);
       }
-      await fs.promises.writeFile(table[pointerCurrentPath], tableContents[index]);
+      await fs.promises.writeFile(table[internalCurrentPath], tableContents[index]);
     }));
     saveIsSaving = false;
   };
@@ -1339,6 +1339,31 @@ function Database(databaseOptions) {
     } else {
       saveSkipNext = true;
       // console.log('save : save tick exists, skipping save on next tick');
+    }
+  };
+  this.asyncSave = () => {
+
+  };
+  this.syncSave = () => {
+    for (let i = 0, l = list.length; i < l; i += 1) {
+      const table = list[i];
+      if (table[internalModified] === true) {
+        let data = [table[internalItemFieldsStringified], table[internalList]];
+        if (savePrettyJSON === true) {
+          data = JSON.stringify(data, null, 2);
+        } else if (saveCompressionAlgo === 'gzip') {
+          data = zlib.gzipSync(JSON.stringify(data));
+        } else if (saveCompressionAlgo === 'brotli') {
+          data = zlib.brotliCompressSync(JSON.stringify(data));
+        } else {
+          data = JSON.stringify(data);
+        }
+        fs.writeFileSync(table[internalTempPath], data);
+        if (fs.existsSync(table[internalCurrentPath]) === true) {
+          fs.renameSync(table[internalCurrentPath], table[internalOldPath]);
+        }
+        fs.writeFileSync(table[internalCurrentPath], data);
+      }
     }
   };
 }
