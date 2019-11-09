@@ -872,12 +872,11 @@ const Query = {
 const internalLabel = Symbol('internalLabel');
 const internalModified = Symbol('internalModified');
 const internalList = Symbol('internalList');
+const internalCompressionPath = Symbol('internalCompressionPath');
 const internalOldPath = Symbol('internalOldPath');
 const internalTempPath = Symbol('internalTempPath');
 const internalCurrentPath = Symbol('internalCurrentPath');
 const internalItemFieldsStringified = Symbol('internalItemFieldsStringified');
-const internalEncodeFn = Symbol('internalEncodeFn');
-const internalDecodeFn = Symbol('internalDecodeFn');
 
 const validItemFieldTypes = [
   'boolean',
@@ -1000,25 +999,33 @@ const validateSchema = (itemSchema) => {
 };
 
 
-function Table(label, fields, itemSchema, transformFunction, database) {
+function Table(label, fields, itemSchema, transformFunction) {
   let list = [];
   let dictionary = {};
   this[internalLabel] = label;
   this[internalModified] = false;
   this[internalList] = list;
+  this[internalCompressionPath] = `./tables/${label}-compression.tb`;
   this[internalOldPath] = `./tables/${label}-old.tb`;
   this[internalTempPath] = `./tables/${label}-temp.tb`;
   this[internalCurrentPath] = `./tables/${label}-current.tb`;
   const itemFieldsStringified = JSON.stringify(fields);
   this[internalItemFieldsStringified] = itemFieldsStringified;
 
+  const saveCompressionAlgo = JSON.parse(fs.readFileSync(this[internalCompressionPath]));
+
   if (fs.existsSync(this[internalCurrentPath]) === true) {
-    const encoded = fs.readFileSync(this[internalCurrentPath]);
-    const decoded = database[internalDecodeFn](encoded);
-    if (Array.isArray(decoded) === false) {
+    let data = fs.readFileSync(this[internalCurrentPath]);
+    if (saveCompressionAlgo === 'gzip') {
+      data = zlib.gunzipSync(data);
+    } else if (saveCompressionAlgo === 'brotli') {
+      data = zlib.brotliDecompressSync(data);
+    }
+    data = JSON.parse(data);
+    if (Array.isArray(data) === false) {
       throw Error('table :: load :: unexpected non-array "decoded" data.');
     }
-    const [loadedfieldsStringified, loadedList] = decoded;
+    const [loadedfieldsStringified, loadedList] = data;
     if (typeof loadedfieldsStringified !== 'string') {
       throw Error('table :: load :: unexpected non-string "loadedfieldsStringified" data.');
     }
@@ -1117,9 +1124,7 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     if (dictionary[itemId] === undefined) {
       throw Error(`table :: delete :: unexpected non-existing id "${itemId}"`);
     }
-    const existingItem = dictionary[itemId];
-    const existingItemIndex = list.indexOf(existingItem);
-    list.splice(existingItemIndex, 1);
+    list.splice(list.indexOf(dictionary[itemId]), 1);
     delete dictionary[itemId];
     this[internalModified] = true;
     return this;
@@ -1222,20 +1227,6 @@ function Database(databaseOptions) {
     throw Error('table :: saveCompressionAlgo :: unexpected non-"gzip" & non-"brotli" value');
   }
 
-  // set encoderFn and decoderFn
-  if (saveCompressionAlgo === 'gzip') {
-    const asyncGzip = util.promisify(zlib.gzip);
-    this[internalEncodeFn] = (decoded) => asyncGzip(JSON.stringify(decoded));
-    this[internalDecodeFn] = (encoded) => JSON.parse(zlib.gunzipSync(encoded));
-  } else if (saveCompressionAlgo === 'brotli') {
-    const asyncBrotliCompress = util.promisify(zlib.brotliCompress);
-    this[internalEncodeFn] = (decoded) => asyncBrotliCompress(JSON.stringify(decoded));
-    this[internalDecodeFn] = (encoded) => JSON.parse(zlib.brotliDecompressSync(encoded));
-  } else {
-    this[internalEncodeFn] = (decoded) => JSON.stringify(decoded);
-    this[internalDecodeFn] = (encoded) => JSON.parse(encoded);
-  }
-
   if (fs.existsSync('./tables') === false) {
     fs.mkdirSync('./tables', { recursive: true });
   }
@@ -1251,9 +1242,9 @@ function Database(databaseOptions) {
       throw Error('database :: tableConfig :: unexpected non-function');
     }
     const [fields, itemSchemaCopy] = validateSchema(itemSchema);
-    const table = new Table(label, fields, itemSchemaCopy, transformFunction, this);
+    const table = new Table(label, fields, itemSchemaCopy, transformFunction);
     list[i] = table;
-    dictionary[table.label()] = table;
+    dictionary[label] = table;
   }
 
   this.table = (label) => {
@@ -1274,7 +1265,7 @@ function Database(databaseOptions) {
     await Promise.all(list.map(async (table) => {
       if (table[internalModified] === true) {
         let data = [table[internalItemFieldsStringified], table[internalList]];
-        table[internalModified] = false;
+        table[internalModified] = false; // eslint-disable-line no-param-reassign
         if (savePrettyJSON === true) {
           data = JSON.stringify(data, null, 2);
         } else if (saveCompressionAlgo === 'gzip') {
@@ -1284,6 +1275,7 @@ function Database(databaseOptions) {
         } else {
           data = JSON.stringify(data);
         }
+        await fs.writeFile(table[internalCompressionPath], JSON.parse(saveCompressionAlgo));
         await fs.promises.writeFile(table[internalTempPath], data);
         if (fs.existsSync(table[internalCurrentPath]) === true) {
           await fs.promises.rename(table[internalCurrentPath], table[internalOldPath]);
@@ -1346,6 +1338,7 @@ function Database(databaseOptions) {
         } else {
           data = JSON.stringify(data);
         }
+        fs.writeFileSync(table[internalCompressionPath], JSON.parse(saveCompressionAlgo));
         fs.writeFileSync(table[internalTempPath], data);
         if (fs.existsSync(table[internalCurrentPath]) === true) {
           fs.renameSync(table[internalCurrentPath], table[internalOldPath]);
