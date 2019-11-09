@@ -1012,7 +1012,10 @@ function Table(label, fields, itemSchema, transformFunction) {
   const itemFieldsStringified = JSON.stringify(fields);
   this[internalItemFieldsStringified] = itemFieldsStringified;
 
-  const saveCompressionAlgo = JSON.parse(fs.readFileSync(this[internalCompressionPath]));
+  let saveCompressionAlgo;
+  if (fs.existsSync(this[internalCompressionPath]) === true) {
+    saveCompressionAlgo = JSON.parse(fs.readFileSync(this[internalCompressionPath]));
+  }
 
   if (fs.existsSync(this[internalCurrentPath]) === true) {
     let data = fs.readFileSync(this[internalCurrentPath]);
@@ -1211,20 +1214,28 @@ function Database(databaseOptions) {
   if (tableConfigs.every((tableConfig) => typeof tableConfig === 'object' && tableConfig !== null) === false) {
     throw Error('table :: tableConfigs :: unexpected non-object value in array');
   }
-  if (typeof asyncSaveCheckInterval !== 'number' || Number.isNaN(asyncSaveCheckInterval) === true || Number.isFinite(asyncSaveCheckInterval) === false || Math.floor(asyncSaveCheckInterval) !== asyncSaveCheckInterval) {
-    throw Error('table :: asyncSaveCheckInterval :: unexpected non-number / NaN / non-finite / non-integer value');
+  if (asyncSaveCheckInterval !== undefined) {
+    if (typeof asyncSaveCheckInterval !== 'number' || Number.isNaN(asyncSaveCheckInterval) === true || Number.isFinite(asyncSaveCheckInterval) === false || Math.floor(asyncSaveCheckInterval) !== asyncSaveCheckInterval) {
+      throw Error('table :: asyncSaveCheckInterval :: unexpected non-number / NaN / non-finite / non-integer value');
+    }
   }
-  if (typeof asyncSaveMaxSkips !== 'number' || Number.isNaN(asyncSaveMaxSkips) === true || Number.isFinite(asyncSaveMaxSkips) === false || Math.floor(asyncSaveMaxSkips) !== asyncSaveMaxSkips) {
-    throw Error('table :: asyncSaveMaxSkips :: unexpected non-number / NaN / non-finite / non-integer value');
+  if (asyncSaveMaxSkips !== undefined) {
+    if (typeof asyncSaveMaxSkips !== 'number' || Number.isNaN(asyncSaveMaxSkips) === true || Number.isFinite(asyncSaveMaxSkips) === false || Math.floor(asyncSaveMaxSkips) !== asyncSaveMaxSkips) {
+      throw Error('table :: asyncSaveMaxSkips :: unexpected non-number / NaN / non-finite / non-integer value');
+    }
   }
-  if (typeof savePrettyJSON !== 'undefined' && typeof saveCompressionAlgo !== 'undefined') {
-    throw Error('table :: unexpected usage of savePrettyJSON & saveCompressionAlgo');
+  if (savePrettyJSON !== undefined) {
+    if (saveCompressionAlgo !== undefined) {
+      throw Error('table :: unexpected usage of savePrettyJSON & saveCompressionAlgo');
+    }
+    if (typeof savePrettyJSON !== 'boolean') {
+      throw Error('table :: savePrettyJSON :: unexpected non-boolean value');
+    }
   }
-  if (typeof savePrettyJSON !== 'undefined' && typeof savePrettyJSON !== 'boolean') {
-    throw Error('table :: savePrettyJSON :: unexpected non-boolean value');
-  }
-  if (typeof saveCompressionAlgo !== 'undefined' && saveCompressionAlgo !== 'gzip' && saveCompressionAlgo !== 'brotli') {
-    throw Error('table :: saveCompressionAlgo :: unexpected non-"gzip" & non-"brotli" value');
+  if (saveCompressionAlgo !== undefined) {
+    if (saveCompressionAlgo !== 'gzip' && saveCompressionAlgo !== 'brotli') {
+      throw Error('table :: saveCompressionAlgo :: unexpected non-"gzip" & non-"brotli" value');
+    }
   }
 
   if (fs.existsSync('./tables') === false) {
@@ -1275,7 +1286,11 @@ function Database(databaseOptions) {
         } else {
           data = JSON.stringify(data);
         }
-        await fs.writeFile(table[internalCompressionPath], JSON.parse(saveCompressionAlgo));
+        if (saveCompressionAlgo !== undefined) {
+          await fs.promises.writeFile(table[internalCompressionPath], JSON.stringify(saveCompressionAlgo));
+        } else if (fs.existsSync(table[internalCompressionPath]) === true) {
+          await fs.promises.unlink(table[internalCompressionPath]);
+        }
         await fs.promises.writeFile(table[internalTempPath], data);
         if (fs.existsSync(table[internalCurrentPath]) === true) {
           await fs.promises.rename(table[internalCurrentPath], table[internalOldPath]);
@@ -1300,7 +1315,7 @@ function Database(databaseOptions) {
         if (asyncSaveIsSaving === false) {
           if (asyncSaveSkipNext === true) {
             asyncSaveSkipNext = false;
-            if (asyncCurrentSaveSkips < asyncSaveMaxSkips) {
+            if (asyncCurrentSaveSkips < (asyncSaveMaxSkips || 60)) {
               asyncCurrentSaveSkips += 1;
             } else {
               asyncCurrentSaveSkips = 0;
@@ -1318,7 +1333,7 @@ function Database(databaseOptions) {
             }
           }
         }
-      }, asyncSaveCheckInterval);
+      }, (asyncSaveCheckInterval || 1000));
     } else {
       asyncSaveSkipNext = true;
     }
@@ -1338,7 +1353,11 @@ function Database(databaseOptions) {
         } else {
           data = JSON.stringify(data);
         }
-        fs.writeFileSync(table[internalCompressionPath], JSON.parse(saveCompressionAlgo));
+        if (saveCompressionAlgo !== undefined) {
+          fs.writeFileSync(table[internalCompressionPath], JSON.stringify(saveCompressionAlgo));
+        } else if (fs.existsSync(table[internalCompressionPath]) === true) {
+          fs.unlinkSync(table[internalCompressionPath]);
+        }
         fs.writeFileSync(table[internalTempPath], data);
         if (fs.existsSync(table[internalCurrentPath]) === true) {
           fs.renameSync(table[internalCurrentPath], table[internalOldPath]);

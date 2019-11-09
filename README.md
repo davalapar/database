@@ -57,16 +57,20 @@ const db = new Database({
 });
 ```
 
-- `databaseOptions.savePrettyJSON`: optional boolean, prettifies output
-- `databaseOptions.saveCompressionAlgo`: optional string, 'gzip' or 'brotli'
-- `databaseOptions.asyncSaveCheckInterval`: optional integer, in milliseconds
-- `databaseOptions.asyncSaveMaxSkips`: optional integer
-- `databaseOptions.tableConfigs`: array of tableConfig
-- `tableConfig.label`: label of table
-- `tableConfig.itemSchema`: schema of table
-- `tableConfig.transformFunction`: transform function for table
+- `databaseOptions`
+  - `savePrettyJSON`: optional boolean, prettifies output
+  - `saveCompressionAlgo`: optional string, 'gzip' or 'brotli'
+  - `asyncSaveCheckInterval`: optional integer, in milliseconds, defaults to `1000`
+  - `asyncSaveMaxSkips`: optional integer, defaults to `60`
+  - `tableConfigs`: array of `tableConfig`
+- `tableConfig`
+  - `label`: label of table
+  - `itemSchema`: schema of table
+  - `transformFunction`: item transform function when you update `itemSchema`
 - `new Database(databaseOptions) -> database`
 - `database.table(label) -> table`
+- `database.asyncSave() -> undefined`
+- `database.syncSave() -> undefined`
 
 #### table
 

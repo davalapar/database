@@ -4,9 +4,10 @@ const Database = require('./index');
 
 
 const db = new Database({
-  // saveCompressionAlgo: 'brotli',
-  saveCheckInterval: 100,
-  saveMaxSkips: 2,
+  // saveCompressionAlgo: 'gzip',
+  // savePrettyJSON: true,
+  // asyncSaveCheckInterval: 100,
+  // asyncSaveMaxSkips: 2,
   tableConfigs: [
     {
       label: 'users',
@@ -445,5 +446,8 @@ test('query: deselect fields', () => {
 
 afterAll(() => {
   const users = db.table('users');
+  const places = db.table('places');
   users.clear();
+  places.clear();
+  db.syncSave();
 });
