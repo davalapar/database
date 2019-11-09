@@ -1006,9 +1006,9 @@ function Table(label, fields, itemSchema, transformFunction, database) {
   this[internalLabel] = label;
   this[internalModified] = false;
   this[internalList] = list;
-  this[internalOldPath] = `./tables/${label}-old.db`;
-  this[internalTempPath] = `./tables/${label}-temp.db`;
-  this[internalCurrentPath] = `./tables/${label}-current.db`;
+  this[internalOldPath] = `./tables/${label}-old.tb`;
+  this[internalTempPath] = `./tables/${label}-temp.tb`;
+  this[internalCurrentPath] = `./tables/${label}-current.tb`;
   const itemFieldsStringified = JSON.stringify(fields);
   this[internalItemFieldsStringified] = itemFieldsStringified;
 
@@ -1026,16 +1026,13 @@ function Table(label, fields, itemSchema, transformFunction, database) {
       throw Error('table :: load :: unexpected non-array "loadedList" data.');
     }
     if (loadedfieldsStringified === itemFieldsStringified) {
-      // console.log('table :: load :: loaded schema match ok');
       list = loadedList;
       this[internalList] = list;
       for (let i = 0, l = loadedList.length; i < l; i += 1) {
         const item = loadedList[i];
         dictionary[item.id] = item;
       }
-      // console.log('table :: load :: loaded', list.length.toString(), 'items');
     } else {
-      // console.log('table :: load :: loaded schema match fail');
       if (transformFunction === undefined) {
         throw Error('table :: load :: "transformFunction" is now required and must be a function.');
       }
@@ -1048,7 +1045,6 @@ function Table(label, fields, itemSchema, transformFunction, database) {
         list[i] = transformedItem;
         dictionary[transformedItem.id] = transformedItem;
       }
-      // console.log('table :: load :: loaded', list.length.toString(), 'items');
     }
   }
 
@@ -1067,7 +1063,6 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     dictionary = {};
     this[internalModified] = true;
     this[internalList] = list;
-    database.save();
     return this;
   };
 
@@ -1084,7 +1079,6 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     list.push(duplicateItem);
     dictionary[id] = duplicateItem;
     this[internalModified] = true;
-    database.save();
     return newItem;
   };
 
@@ -1103,7 +1097,6 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     list[existingItemIndex] = duplicateItem;
     dictionary[id] = duplicateItem;
     this[internalModified] = true;
-    database.save();
     return updatedItem;
   };
 
@@ -1129,7 +1122,6 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     list.splice(existingItemIndex, 1);
     delete dictionary[itemId];
     this[internalModified] = true;
-    database.save();
     return this;
   };
 
@@ -1149,7 +1141,6 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     const existingItem = dictionary[itemId];
     existingItem[field] += 1;
     this[internalModified] = true;
-    database.save();
     return this;
   };
 
@@ -1169,7 +1160,6 @@ function Table(label, fields, itemSchema, transformFunction, database) {
     const existingItem = dictionary[itemId];
     existingItem[field] -= 1;
     this[internalModified] = true;
-    database.save();
     return this;
   };
 
@@ -1203,26 +1193,33 @@ function Database(databaseOptions) {
 
   const {
     tableConfigs,
-    saveCheckInterval,
-    saveMaxSkips,
+    asyncSaveCheckInterval,
+    asyncSaveMaxSkips,
+    savePrettyJSON,
     saveCompressionAlgo,
   } = databaseOptions;
 
   // more type checks
   if (Array.isArray(tableConfigs) === false) {
-    throw Error('table :: tableConfigs :: unexpected non-array tableConfigs');
+    throw Error('table :: tableConfigs :: unexpected non-array value');
   }
   if (tableConfigs.every((tableConfig) => typeof tableConfig === 'object' && tableConfig !== null) === false) {
-    throw Error('table :: tableConfigs :: unexpected non-object tableConfig in tableConfigs');
+    throw Error('table :: tableConfigs :: unexpected non-object value in array');
   }
-  if (typeof saveCheckInterval !== 'number' || Number.isNaN(saveCheckInterval) === true || Number.isFinite(saveCheckInterval) === false || Math.floor(saveCheckInterval) !== saveCheckInterval) {
-    throw Error('table :: saveCheckInterval :: unexpected non-number / NaN / non-finite / non-integer saveCheckInterval');
+  if (typeof asyncSaveCheckInterval !== 'number' || Number.isNaN(asyncSaveCheckInterval) === true || Number.isFinite(asyncSaveCheckInterval) === false || Math.floor(asyncSaveCheckInterval) !== asyncSaveCheckInterval) {
+    throw Error('table :: asyncSaveCheckInterval :: unexpected non-number / NaN / non-finite / non-integer value');
   }
-  if (typeof saveMaxSkips !== 'number' || Number.isNaN(saveMaxSkips) === true || Number.isFinite(saveMaxSkips) === false || Math.floor(saveMaxSkips) !== saveMaxSkips) {
-    throw Error('table :: saveMaxSkips :: unexpected non-number / NaN / non-finite / non-integer saveMaxSkips');
+  if (typeof asyncSaveMaxSkips !== 'number' || Number.isNaN(asyncSaveMaxSkips) === true || Number.isFinite(asyncSaveMaxSkips) === false || Math.floor(asyncSaveMaxSkips) !== asyncSaveMaxSkips) {
+    throw Error('table :: asyncSaveMaxSkips :: unexpected non-number / NaN / non-finite / non-integer value');
+  }
+  if (typeof savePrettyJSON !== 'undefined' && typeof saveCompressionAlgo !== 'undefined') {
+    throw Error('table :: unexpected usage of savePrettyJSON & saveCompressionAlgo');
+  }
+  if (typeof savePrettyJSON !== 'undefined' && typeof savePrettyJSON !== 'boolean') {
+    throw Error('table :: savePrettyJSON :: unexpected non-boolean value');
   }
   if (typeof saveCompressionAlgo !== 'undefined' && saveCompressionAlgo !== 'gzip' && saveCompressionAlgo !== 'brotli') {
-    throw Error('table :: saveCompressionAlgo :: unexpected non-"gzip" & non-"brotli" saveCompressionAlgo');
+    throw Error('table :: saveCompressionAlgo :: unexpected non-"gzip" & non-"brotli" value');
   }
 
   // set encoderFn and decoderFn
@@ -1241,7 +1238,6 @@ function Database(databaseOptions) {
 
   if (fs.existsSync('./tables') === false) {
     fs.mkdirSync('./tables', { recursive: true });
-    // console.log('table :: "./tables" directory created.');
   }
 
   const list = [];
@@ -1260,8 +1256,6 @@ function Database(databaseOptions) {
     dictionary[table.label()] = table;
   }
 
-  // [x] typechecks?
-  // [x] working?
   this.table = (label) => {
     if (typeof label !== 'string') {
       throw Error('database :: table :: unexpected non-string label');
@@ -1272,83 +1266,77 @@ function Database(databaseOptions) {
     return dictionary[label];
   };
 
-  let saveIsSaving = false;
+  let asyncSaveIsSaving = false;
+  const zlibGzip = util.promisify(zlib.gzip);
+  const zlibBrotliCompress = util.promisify(zlib.brotliCompress);
   const internalSave = async () => {
-    const tables = list.filter((table) => table[internalModified] === true);
-    const tableContents = await Promise.all(tables.map(async (table, index) => {
-      const tableContent = await this[internalEncodeFn]([table[internalItemFieldsStringified], table[internalList]]);
-      tables[index][internalModified] = false;
-      return tableContent;
-    }));
-    saveIsSaving = true;
-    await Promise.all(tables.map(async (table, index) => {
-      await fs.promises.writeFile(table[internalTempPath], tableContents[index]);
-      if (fs.existsSync(table[internalCurrentPath]) === true) {
-        await fs.promises.rename(table[internalCurrentPath], table[internalOldPath]);
+    asyncSaveIsSaving = true;
+    await Promise.all(list.map(async (table) => {
+      if (table[internalModified] === true) {
+        let data = [table[internalItemFieldsStringified], table[internalList]];
+        table[internalModified] = false;
+        if (savePrettyJSON === true) {
+          data = JSON.stringify(data, null, 2);
+        } else if (saveCompressionAlgo === 'gzip') {
+          data = await zlibGzip(JSON.stringify(data));
+        } else if (saveCompressionAlgo === 'brotli') {
+          data = await zlibBrotliCompress(JSON.stringify(data));
+        } else {
+          data = JSON.stringify(data);
+        }
+        await fs.promises.writeFile(table[internalTempPath], data);
+        if (fs.existsSync(table[internalCurrentPath]) === true) {
+          await fs.promises.rename(table[internalCurrentPath], table[internalOldPath]);
+        }
+        await fs.promises.writeFile(table[internalCurrentPath], data);
       }
-      await fs.promises.writeFile(table[internalCurrentPath], tableContents[index]);
     }));
-    saveIsSaving = false;
+    asyncSaveIsSaving = false;
   };
 
-  let saveInterval;
-  let saveSkipNext = false;
-  let saveSkips = 0;
-  let saveQueued = false;
-  this.save = () => {
-    if (saveIsSaving === true) {
-      saveQueued = true;
-      // console.log('save : currently saving, queueing save');
+  let asyncSaveInterval;
+  let asyncSaveSkipNext = false;
+  let asyncCurrentSaveSkips = 0;
+  let asyncSaveQueued = false;
+  this.asyncSave = () => {
+    if (asyncSaveIsSaving === true) {
+      asyncSaveQueued = true;
       return;
     }
-    if (saveInterval === undefined) {
-      saveInterval = setInterval(async () => {
-        // const tid = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-        if (saveIsSaving === false) {
-          if (saveSkipNext === true) {
-            saveSkipNext = false;
-            if (saveSkips < saveMaxSkips) {
-              saveSkips += 1;
-              // console.log('save tick', tid, ': save skipped');
+    if (asyncSaveInterval === undefined) {
+      asyncSaveInterval = setInterval(async () => {
+        if (asyncSaveIsSaving === false) {
+          if (asyncSaveSkipNext === true) {
+            asyncSaveSkipNext = false;
+            if (asyncCurrentSaveSkips < asyncSaveMaxSkips) {
+              asyncCurrentSaveSkips += 1;
             } else {
-              saveSkips = 0;
-              // console.log('save tick', tid, ': saving');
+              asyncCurrentSaveSkips = 0;
               await internalSave();
-              // console.log('save tick', tid, ': save ok');
-              if (saveQueued === false) {
-                // console.log('save tick', tid, ': save tick cleared');
-                clearInterval(saveInterval);
-                saveInterval = undefined;
+              if (asyncSaveQueued === false) {
+                clearInterval(asyncSaveInterval);
+                asyncSaveInterval = undefined;
               }
             }
           } else {
-            // console.log('save tick', tid, ': saving');
             await internalSave();
-            // console.log('save tick', tid, ': save ok');
-            if (saveQueued === false) {
-              // console.log('save tick', tid, ': save tick cleared');
-              clearInterval(saveInterval);
-              saveInterval = undefined;
+            if (asyncSaveQueued === false) {
+              clearInterval(asyncSaveInterval);
+              asyncSaveInterval = undefined;
             }
           }
-        } else {
-          // console.log('save tick', tid, ': currently saving, doing nothing');
         }
-      }, saveCheckInterval);
-      // console.log('save : creating save tick');
+      }, asyncSaveCheckInterval);
     } else {
-      saveSkipNext = true;
-      // console.log('save : save tick exists, skipping save on next tick');
+      asyncSaveSkipNext = true;
     }
-  };
-  this.asyncSave = () => {
-
   };
   this.syncSave = () => {
     for (let i = 0, l = list.length; i < l; i += 1) {
       const table = list[i];
       if (table[internalModified] === true) {
         let data = [table[internalItemFieldsStringified], table[internalList]];
+        table[internalModified] = false;
         if (savePrettyJSON === true) {
           data = JSON.stringify(data, null, 2);
         } else if (saveCompressionAlgo === 'gzip') {

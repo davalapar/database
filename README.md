@@ -30,9 +30,10 @@ yarn add @davalapar/database
 const Database = require('@davalapar/database');
 
 const db = new Database({
-  // saveCompressionAlgo: 'brotli',
-  saveCheckInterval: 100,
-  saveMaxSkips: 2,
+  // savePrettyJSON: true,
+  // saveCompressionAlgo: 'gzip' or 'brotli',
+  asyncSaveCheckInterval: 100,
+  asyncSaveMaxSkips: 2,
   tableConfigs: [
     {
       label: 'users',
@@ -56,9 +57,10 @@ const db = new Database({
 });
 ```
 
+- `databaseOptions.savePrettyJSON`: optional boolean, prettifies output
 - `databaseOptions.saveCompressionAlgo`: optional string, 'gzip' or 'brotli'
-- `databaseOptions.saveCheckInterval`: optional integer, in milliseconds
-- `databaseOptions.saveMaxSkips`: optional integer
+- `databaseOptions.asyncSaveCheckInterval`: optional integer, in milliseconds
+- `databaseOptions.asyncSaveMaxSkips`: optional integer
 - `databaseOptions.tableConfigs`: array of tableConfig
 - `tableConfig.label`: label of table
 - `tableConfig.itemSchema`: schema of table
