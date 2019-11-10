@@ -57,7 +57,7 @@ const db = new Database({
 });
 ```
 
-- `databaseOptions`
+- `dbOptions`
   - `savePrettyJSON`: optional boolean, prettifies output
   - `saveCompressionAlgo`: optional string, 'gzip' or 'brotli'
   - `asyncSaveCheckInterval`: optional integer, in milliseconds, defaults to `1000`
@@ -67,7 +67,7 @@ const db = new Database({
   - `label`: label of table
   - `itemSchema`: schema of table
   - `transformFunction`: item transform function when you update `itemSchema`
-- `new Database(databaseOptions) -> database`
+- `new Database(dbOptions) -> database`
 - `database.table(label) -> table`
 - `database.asyncSave() -> undefined`
 - `database.syncSave() -> undefined`

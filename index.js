@@ -20,82 +20,82 @@ const Query = {
   // SORTS:
   ascend: (field) => {
     if (typeof field !== 'string') {
-      throw Error('ascend :: field :: Unexpected non-string');
+      throw Error('query.ascend(field) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('ascend :: field :: Unexpected non-existing field');
+      throw Error('query.ascend(field) :: Unexpected non-existing field');
     }
     if (queryItemSchema[field] !== 'string' && queryItemSchema[field] !== 'number') {
-      throw Error('ascend :: field :: Unexpected non-string and non-number field');
+      throw Error('query.ascend(field) :: Unexpected non-string and non-number field');
     }
     querySorts.push([field, false]);
     return Query;
   },
   descend: (field) => {
     if (typeof field !== 'string') {
-      throw Error('descend :: field :: Unexpected non-string');
+      throw Error('query.descend(field) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('descend :: field :: Unexpected non-existing field');
+      throw Error('query.descend(field) :: Unexpected non-existing field');
     }
     if (queryItemSchema[field] !== 'string' && queryItemSchema[field] !== 'number') {
-      throw Error('descend :: field :: Unexpected non-string and non-number field');
+      throw Error('query.descend(field) :: Unexpected non-string and non-number field');
     }
     querySorts.push([field, true]);
     return Query;
   },
   ascend_h: (field, coordinates) => {
     if (typeof field !== 'string') {
-      throw Error('ascend_h :: field :: Unexpected non-string');
+      throw Error('query.ascend_h(field, coordinates) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('ascend_h :: field :: Unexpected non-existing field');
+      throw Error('query.ascend_h(field, coordinates) :: Unexpected non-existing field');
     }
     if (queryItemSchema[field] !== 'coordinates') {
-      throw Error('ascend_h :: coordinates :: Unexpected non-coordinates field');
+      throw Error('query.ascend_h(field, coordinates) :: Unexpected non-coordinates field');
     }
     if (Array.isArray(coordinates) === false) {
-      throw Error('ascend_h :: coordinates :: Unexpected non-array coordinates');
+      throw Error('query.ascend_h(field, coordinates) :: Unexpected non-array coordinates');
     }
     if (coordinates.every((value) => typeof value === 'number') === false) {
-      throw Error('ascend_h :: coordinates :: Unexpected non-number in coordinates');
+      throw Error('query.ascend_h(field, coordinates) :: Unexpected non-number in coordinates');
     }
     if (coordinates.every((value) => Number.isNaN(value) === false) === false) {
-      throw Error('ascend_h :: coordinates :: Unexpected NaN in coordinates');
+      throw Error('query.ascend_h(field, coordinates) :: Unexpected NaN in coordinates');
     }
     if (coordinates.every((value) => Number.isFinite(value) === true) === false) {
-      throw Error('ascend_h :: coordinates :: Unexpected non-finite in coordinates');
+      throw Error('query.ascend_h(field, coordinates) :: Unexpected non-finite in coordinates');
     }
     if (coordinates.length !== 2) {
-      throw Error('ascend_h :: coordinates :: Unexpected non-2 length for coordinates');
+      throw Error('query.ascend_h(field, coordinates) :: Unexpected non-2 length for coordinates');
     }
     querySorts.push([field, false, coordinates]);
     return Query;
   },
   descend_h: (field, coordinates) => {
     if (typeof field !== 'string') {
-      throw Error('descend_h :: field :: Unexpected non-string');
+      throw Error('query.descend_h(field, coordinates) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('descend_h :: field :: Unexpected non-existing field');
+      throw Error('query.descend_h(field, coordinates) :: Unexpected non-existing field');
     }
     if (queryItemSchema[field] !== 'coordinates') {
-      throw Error('descend_h :: coordinates :: Unexpected non-coordinates field');
+      throw Error('query.descend_h(field, coordinates) :: Unexpected non-coordinates field');
     }
     if (Array.isArray(coordinates) === false) {
-      throw Error('descend_h :: coordinates :: Unexpected non-array coordinates');
+      throw Error('query.descend_h(field, coordinates) :: Unexpected non-array coordinates');
     }
     if (coordinates.every((value) => typeof value === 'number') === false) {
-      throw Error('descend_h :: coordinates :: Unexpected non-number in coordinates');
+      throw Error('query.descend_h(field, coordinates) :: Unexpected non-number in coordinates');
     }
     if (coordinates.every((value) => Number.isNaN(value) === false) === false) {
-      throw Error('descend_h :: coordinates :: Unexpected NaN in coordinates');
+      throw Error('query.descend_h(field, coordinates) :: Unexpected NaN in coordinates');
     }
     if (coordinates.every((value) => Number.isFinite(value) === true) === false) {
-      throw Error('descend_h :: coordinates :: Unexpected non-finite in coordinates');
+      throw Error('query.descend_h(field, coordinates) :: Unexpected non-finite in coordinates');
     }
     if (coordinates.length !== 2) {
-      throw Error('descend_h :: coordinates :: Unexpected non-2 length for coordinates');
+      throw Error('query.descend_h(field, coordinates) :: Unexpected non-2 length for coordinates');
     }
     querySorts.push([field, true, coordinates]);
     return Query;
@@ -104,126 +104,126 @@ const Query = {
   // FILTERS:
   gt: (field, value) => {
     if (typeof field !== 'string') {
-      throw Error('gt :: field :: Unexpected non-string');
+      throw Error('query.gt(field, value) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('gt :: field :: Unexpected non-existing field');
+      throw Error('query.gt(field, value) :: Unexpected non-existing field');
     }
     if (queryItemSchema[field] !== 'number') {
-      throw Error('gt :: field :: Unexpected non-string and non-number field');
+      throw Error('query.gt(field, value) :: Unexpected non-string and non-number field');
     }
     if (typeof value !== 'number') {
-      throw Error('gt :: value :: Unexpected non-number value');
+      throw Error('query.gt(field, value) :: Unexpected non-number value');
     }
     if (Number.isNaN(value) === true) {
-      throw Error('gt :: value :: Unexpected NaN value');
+      throw Error('query.gt(field, value) :: Unexpected NaN value');
     }
     if (Number.isFinite(value) === false) {
-      throw Error('gt :: value :: Unexpected non-finite value');
+      throw Error('query.gt(field, value) :: Unexpected non-finite value');
     }
     queryFilters.push([1, field, value]);
     return Query;
   },
   gte: (field, value) => {
     if (typeof field !== 'string') {
-      throw Error('gte :: field :: Unexpected non-string');
+      throw Error('query.gte(field, value) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('gte :: field :: Unexpected non-existing field');
+      throw Error('query.gte(field, value) :: Unexpected non-existing field');
     }
     if (queryItemSchema[field] !== 'number') {
-      throw Error('gte :: field :: Unexpected non-string and non-number field');
+      throw Error('query.gte(field, value) :: Unexpected non-string and non-number field');
     }
     if (typeof value !== 'number') {
-      throw Error('gte :: value :: Unexpected non-number value');
+      throw Error('query.gte(field, value) :: Unexpected non-number value');
     }
     if (Number.isNaN(value) === true) {
-      throw Error('gte :: value :: Unexpected NaN value');
+      throw Error('query.gte(field, value) :: Unexpected NaN value');
     }
     if (Number.isFinite(value) === false) {
-      throw Error('gte :: value :: Unexpected non-finite value');
+      throw Error('query.gte(field, value) :: Unexpected non-finite value');
     }
     queryFilters.push([2, field, value]);
     return Query;
   },
   lt: (field, value) => {
     if (typeof field !== 'string') {
-      throw Error('lt :: field :: Unexpected non-string');
+      throw Error('query.lt(field, value) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('lt :: field :: Unexpected non-existing field');
+      throw Error('query.lt(field, value) :: Unexpected non-existing field');
     }
     if (queryItemSchema[field] !== 'number') {
-      throw Error('lt :: field :: Unexpected non-string and non-number field');
+      throw Error('query.lt(field, value) :: Unexpected non-string and non-number field');
     }
     if (typeof value !== 'number') {
-      throw Error('lt :: value :: Unexpected non-number value');
+      throw Error('query.lt(field, value) :: Unexpected non-number value');
     }
     if (Number.isNaN(value) === true) {
-      throw Error('lt :: value :: Unexpected NaN value');
+      throw Error('query.lt(field, value) :: Unexpected NaN value');
     }
     if (Number.isFinite(value) === false) {
-      throw Error('lt :: value :: Unexpected non-finite value');
+      throw Error('query.lt(field, value) :: Unexpected non-finite value');
     }
     queryFilters.push([3, field, value]);
     return Query;
   },
   lte: (field, value) => {
     if (typeof field !== 'string') {
-      throw Error('lte :: field :: Unexpected non-string');
+      throw Error('query.lte(field, value) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('lte :: field :: Unexpected non-existing field');
+      throw Error('query.lte(field, value) :: Unexpected non-existing field');
     }
     if (queryItemSchema[field] !== 'number') {
-      throw Error('lte :: field :: Unexpected non-string and non-number field');
+      throw Error('query.lte(field, value) :: Unexpected non-string and non-number field');
     }
     if (typeof value !== 'number') {
-      throw Error('lte :: value :: Unexpected non-number value');
+      throw Error('query.lte(field, value) :: Unexpected non-number value');
     }
     if (Number.isNaN(value) === true) {
-      throw Error('lte :: value :: Unexpected NaN value');
+      throw Error('query.lte(field, value) :: Unexpected NaN value');
     }
     if (Number.isFinite(value) === false) {
-      throw Error('lte :: value :: Unexpected non-finite value');
+      throw Error('query.lte(field, value) :: Unexpected non-finite value');
     }
     queryFilters.push([4, field, value]);
     return Query;
   },
   eq: (field, value) => {
     if (typeof field !== 'string') {
-      throw Error('eq :: field :: Unexpected non-string');
+      throw Error('query.eq(field, value) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('eq :: field :: Unexpected non-existing field');
+      throw Error('query.eq(field, value) :: Unexpected non-existing field');
     }
     switch (queryItemSchema[field]) {
       case 'boolean': {
         if (typeof value !== 'boolean') {
-          throw Error('eq :: value :: Unexpected non-boolean value');
+          throw Error('query.eq(field, value) :: Unexpected non-boolean value');
         }
         break;
       }
       case 'string': {
         if (typeof value !== 'string') {
-          throw Error('eq :: value :: Unexpected non-string value');
+          throw Error('query.eq(field, value) :: Unexpected non-string value');
         }
         break;
       }
       case 'number': {
         if (typeof value !== 'number') {
-          throw Error('eq :: value :: Unexpected non-number value');
+          throw Error('query.eq(field, value) :: Unexpected non-number value');
         }
         if (Number.isNaN(value) === true) {
-          throw Error('eq :: value :: Unexpected NaN value');
+          throw Error('query.eq(field, value) :: Unexpected NaN value');
         }
         if (Number.isFinite(value) === false) {
-          throw Error('eq :: value :: Unexpected non-finite value');
+          throw Error('query.eq(field, value) :: Unexpected non-finite value');
         }
         break;
       }
       default: {
-        throw Error('eq :: field :: Unexpected non-string, non-number, and non-boolean field');
+        throw Error('query.eq(field, value) :: Unexpected non-string, non-number, and non-boolean field');
       }
     }
     queryFilters.push([5, field, value]);
@@ -231,38 +231,38 @@ const Query = {
   },
   neq: (field, value) => {
     if (typeof field !== 'string') {
-      throw Error('neq :: field :: Unexpected non-string');
+      throw Error('query.neq(field, value) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('neq :: field :: Unexpected non-existing field');
+      throw Error('query.neq(field, value) :: Unexpected non-existing field');
     }
     switch (queryItemSchema[field]) {
       case 'boolean': {
         if (typeof value !== 'boolean') {
-          throw Error('neq :: value :: Unexpected non-boolean value');
+          throw Error('query.neq(field, value) :: Unexpected non-boolean value');
         }
         break;
       }
       case 'string': {
         if (typeof value !== 'string') {
-          throw Error('neq :: value :: Unexpected non-string value');
+          throw Error('query.neq(field, value) :: Unexpected non-string value');
         }
         break;
       }
       case 'number': {
         if (typeof value !== 'number') {
-          throw Error('neq :: value :: Unexpected non-number value');
+          throw Error('query.neq(field, value) :: Unexpected non-number value');
         }
         if (Number.isNaN(value) === true) {
-          throw Error('neq :: value :: Unexpected NaN value');
+          throw Error('query.neq(field, value) :: Unexpected NaN value');
         }
         if (Number.isFinite(value) === false) {
-          throw Error('neq :: value :: Unexpected non-finite value');
+          throw Error('query.neq(field, value) :: Unexpected non-finite value');
         }
         break;
       }
       default: {
-        throw Error('neq :: field :: Unexpected non-string, non-number, and non-boolean field');
+        throw Error('query.neq(field, value) :: Unexpected non-string, non-number, and non-boolean field');
       }
     }
     queryFilters.push([6, field, value]);
@@ -270,38 +270,38 @@ const Query = {
   },
   includes: (field, value) => {
     if (typeof field !== 'string') {
-      throw Error('includes :: field :: Unexpected non-string');
+      throw Error('query.includes(field, value) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('includes :: field :: Unexpected non-existing field');
+      throw Error('query.includes(field, value) :: Unexpected non-existing field');
     }
     switch (queryItemSchema[field]) {
       case 'booleans': {
         if (typeof value !== 'boolean') {
-          throw Error('includes :: value :: Unexpected non-boolean value');
+          throw Error('query.includes(field, value) :: Unexpected non-boolean value');
         }
         break;
       }
       case 'strings': {
         if (typeof value !== 'string') {
-          throw Error('includes :: value :: Unexpected non-string value');
+          throw Error('query.includes(field, value) :: Unexpected non-string value');
         }
         break;
       }
       case 'numbers': {
         if (typeof value !== 'number') {
-          throw Error('includes :: value :: Unexpected non-number value');
+          throw Error('query.includes(field, value) :: Unexpected non-number value');
         }
         if (Number.isNaN(value) === true) {
-          throw Error('includes :: value :: Unexpected NaN value');
+          throw Error('query.includes(field, value) :: Unexpected NaN value');
         }
         if (Number.isFinite(value) === false) {
-          throw Error('includes :: value :: Unexpected non-finite value');
+          throw Error('query.includes(field, value) :: Unexpected non-finite value');
         }
         break;
       }
       default: {
-        throw Error('includes :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('query.includes(field, value) :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
     queryFilters.push([7, field, value]);
@@ -309,38 +309,38 @@ const Query = {
   },
   excludes: (field, value) => {
     if (typeof field !== 'string') {
-      throw Error('excludes :: field :: Unexpected non-string');
+      throw Error('query.excludes(field, value) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('excludes :: field :: Unexpected non-existing field');
+      throw Error('query.excludes(field, value) :: Unexpected non-existing field');
     }
     switch (queryItemSchema[field]) {
       case 'booleans': {
         if (typeof value !== 'boolean') {
-          throw Error('excludes :: value :: Unexpected non-boolean value');
+          throw Error('query.excludes(field, value) :: Unexpected non-boolean value');
         }
         break;
       }
       case 'strings': {
         if (typeof value !== 'string') {
-          throw Error('excludes :: value :: Unexpected non-string value');
+          throw Error('query.excludes(field, value) :: Unexpected non-string value');
         }
         break;
       }
       case 'numbers': {
         if (typeof value !== 'number') {
-          throw Error('excludes :: value :: Unexpected non-number value');
+          throw Error('query.excludes(field, value) :: Unexpected non-number value');
         }
         if (Number.isNaN(value) === true) {
-          throw Error('excludes :: value :: Unexpected NaN value');
+          throw Error('query.excludes(field, value) :: Unexpected NaN value');
         }
         if (Number.isFinite(value) === false) {
-          throw Error('excludes :: value :: Unexpected non-finite value');
+          throw Error('query.excludes(field, value) :: Unexpected non-finite value');
         }
         break;
       }
       default: {
-        throw Error('excludes :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('query.excludes(field, value) :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
     queryFilters.push([8, field, value]);
@@ -348,118 +348,118 @@ const Query = {
   },
   inside_h: (field, coordinates, meters) => {
     if (typeof field !== 'string') {
-      throw Error('inside_h :: field :: Unexpected non-string');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('inside_h :: field :: Unexpected non-existing field');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected non-existing field');
     }
     if (queryItemSchema[field] !== 'coordinates') {
-      throw Error('inside_h :: coordinates :: Unexpected non-coordinates field');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected non-coordinates field');
     }
     if (Array.isArray(coordinates) === false) {
-      throw Error('inside_h :: coordinates :: Unexpected non-array coordinates');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected non-array coordinates');
     }
     if (coordinates.every((value) => typeof value === 'number') === false) {
-      throw Error('inside_h :: coordinates :: Unexpected non-number in coordinates');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected non-number in coordinates');
     }
     if (coordinates.every((value) => Number.isNaN(value) === false) === false) {
-      throw Error('inside_h :: coordinates :: Unexpected NaN in coordinates');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected NaN in coordinates');
     }
     if (coordinates.every((value) => Number.isFinite(value) === true) === false) {
-      throw Error('inside_h :: coordinates :: Unexpected non-finite in coordinates');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected non-finite in coordinates');
     }
     if (coordinates.length !== 2) {
-      throw Error('inside_h :: coordinates :: Unexpected non-2 length for coordinates');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected non-2 length for coordinates');
     }
     if (typeof meters !== 'number') {
-      throw Error('inside_h :: meters :: Unexpected non-number meters');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected non-number meters');
     }
     if (Number.isNaN(meters) === true) {
-      throw Error('inside_h :: meters :: Unexpected NaN meters');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected NaN meters');
     }
     if (Number.isFinite(meters) === false) {
-      throw Error('inside_h :: meters :: Unexpected non-finite meters');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected non-finite meters');
     }
     if (meters <= 0) {
-      throw Error('outside_h :: meters :: Unexpected less-than-zero meters');
+      throw Error('query.inside_h(field, coordinates, meters) :: Unexpected less-than-zero meters');
     }
     queryFilters.push([9, field, coordinates, meters]);
     return Query;
   },
   outside_h: (field, coordinates, meters) => {
     if (typeof field !== 'string') {
-      throw Error('outside_h :: field :: Unexpected non-string');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('outside_h :: field :: Unexpected non-existing field');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected non-existing field');
     }
     if (queryItemSchema[field] !== 'coordinates') {
-      throw Error('outside_h :: coordinates :: Unexpected non-coordinates field');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected non-coordinates field');
     }
     if (Array.isArray(coordinates) === false) {
-      throw Error('outside_h :: coordinates :: Unexpected non-array coordinates');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected non-array coordinates');
     }
     if (coordinates.every((value) => typeof value === 'number') === false) {
-      throw Error('outside_h :: coordinates :: Unexpected non-number in coordinates');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected non-number in coordinates');
     }
     if (coordinates.every((value) => Number.isNaN(value) === false) === false) {
-      throw Error('outside_h :: coordinates :: Unexpected NaN in coordinates');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected NaN in coordinates');
     }
     if (coordinates.every((value) => Number.isFinite(value) === true) === false) {
-      throw Error('outside_h :: coordinates :: Unexpected non-finite in coordinates');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected non-finite in coordinates');
     }
     if (coordinates.length !== 2) {
-      throw Error('outside_h :: coordinates :: Unexpected non-2 length for coordinates');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected non-2 length for coordinates');
     }
     if (typeof meters !== 'number') {
-      throw Error('outside_h :: meters :: Unexpected non-number meters');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected non-number meters');
     }
     if (Number.isNaN(meters) === true) {
-      throw Error('outside_h :: meters :: Unexpected NaN meters');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected NaN meters');
     }
     if (Number.isFinite(meters) === false) {
-      throw Error('outside_h :: meters :: Unexpected non-finite meters');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected non-finite meters');
     }
     if (meters <= 0) {
-      throw Error('outside_h :: meters :: Unexpected less-than-zero meters');
+      throw Error('query.outside_h(field, coordinates, meters) :: Unexpected less-than-zero meters');
     }
     queryFilters.push([10, field, coordinates, meters]);
     return Query;
   },
   includes_some: (field, values) => {
     if (typeof field !== 'string') {
-      throw Error('includes_some :: field :: Unexpected non-string');
+      throw Error('query.includes_some(field, values) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('includes_some :: field :: Unexpected non-existing field');
+      throw Error('query.includes_some(field, values) :: Unexpected non-existing field');
     }
     if (Array.isArray(values) === false) {
-      throw Error('includes_some :: values :: Unexpected non-array values');
+      throw Error('query.includes_some(field, values) :: Unexpected non-array values');
     }
     if (values.length === 0) {
-      throw Error('includes_some :: values :: Unexpected empty-array values');
+      throw Error('query.includes_some(field, values) :: Unexpected empty-array values');
     }
     switch (queryItemSchema[field]) {
       case 'booleans': {
         if (values.every((value) => typeof value === 'boolean') === false) {
-          throw Error('includes_some :: values :: Unexpected non-boolean value');
+          throw Error('query.includes_some(field, values) :: Unexpected non-boolean value');
         }
         break;
       }
       case 'strings': {
         if (values.every((value) => typeof value === 'string') === false) {
-          throw Error('includes_some :: values :: Unexpected non-string value');
+          throw Error('query.includes_some(field, values) :: Unexpected non-string value');
         }
         break;
       }
       case 'numbers': {
         if (values.every((value) => typeof value === 'number' && Number.isNaN(value) === false && Number.isFinite(value) === true) === false) {
-          throw Error('includes_some :: values :: Unexpected non-number / NaN / non-finite value');
+          throw Error('query.includes_some(field, values) :: Unexpected non-number / NaN / non-finite value');
         }
         break;
       }
       default: {
-        throw Error('includes_some :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('query.includes_some(field, values) :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
     queryFilters.push([11, field, values]);
@@ -467,38 +467,38 @@ const Query = {
   },
   includes_all: (field, values) => {
     if (typeof field !== 'string') {
-      throw Error('includes_all :: field :: Unexpected non-string');
+      throw Error('query.includes_all(field, values) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('includes_all :: field :: Unexpected non-existing field');
+      throw Error('query.includes_all(field, values) :: Unexpected non-existing field');
     }
     if (Array.isArray(values) === false) {
-      throw Error('includes_all :: values :: Unexpected non-array values');
+      throw Error('query.includes_all(field, values) :: Unexpected non-array values');
     }
     if (values.length === 0) {
-      throw Error('includes_all :: values :: Unexpected empty-array values');
+      throw Error('query.includes_all(field, values) :: Unexpected empty-array values');
     }
     switch (queryItemSchema[field]) {
       case 'booleans': {
         if (values.every((value) => typeof value === 'boolean') === false) {
-          throw Error('includes_all :: values :: Unexpected non-boolean value');
+          throw Error('query.includes_all(field, values) :: Unexpected non-boolean value');
         }
         break;
       }
       case 'strings': {
         if (values.every((value) => typeof value === 'string') === false) {
-          throw Error('includes_all :: values :: Unexpected non-string value');
+          throw Error('query.includes_all(field, values) :: Unexpected non-string value');
         }
         break;
       }
       case 'numbers': {
         if (values.every((value) => typeof value === 'number' && Number.isNaN(value) === false && Number.isFinite(value) === true) === false) {
-          throw Error('includes_all :: values :: Unexpected non-number / NaN / non-finite value');
+          throw Error('query.includes_all(field, values) :: Unexpected non-number / NaN / non-finite value');
         }
         break;
       }
       default: {
-        throw Error('includes_all :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('query.includes_all(field, values) :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
     queryFilters.push([12, field, values]);
@@ -506,38 +506,38 @@ const Query = {
   },
   excludes_some: (field, values) => {
     if (typeof field !== 'string') {
-      throw Error('excludes_some :: field :: Unexpected non-string');
+      throw Error('query.excludes_some(field, values) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('excludes_some :: field :: Unexpected non-existing field');
+      throw Error('query.excludes_some(field, values) :: Unexpected non-existing field');
     }
     if (Array.isArray(values) === false) {
-      throw Error('excludes_some :: values :: Unexpected non-array values');
+      throw Error('query.excludes_some(field, values) :: Unexpected non-array values');
     }
     if (values.length === 0) {
-      throw Error('excludes_some :: values :: Unexpected empty-array values');
+      throw Error('query.excludes_some(field, values) :: Unexpected empty-array values');
     }
     switch (queryItemSchema[field]) {
       case 'booleans': {
         if (values.every((value) => typeof value === 'boolean') === false) {
-          throw Error('excludes_some :: values :: Unexpected non-boolean value');
+          throw Error('query.excludes_some(field, values) :: Unexpected non-boolean value');
         }
         break;
       }
       case 'strings': {
         if (values.every((value) => typeof value === 'string') === false) {
-          throw Error('excludes_some :: values :: Unexpected non-string value');
+          throw Error('query.excludes_some(field, values) :: Unexpected non-string value');
         }
         break;
       }
       case 'numbers': {
         if (values.every((value) => typeof value === 'number' && Number.isNaN(value) === false && Number.isFinite(value) === true) === false) {
-          throw Error('excludes_some :: values :: Unexpected non-number / NaN / non-finite value');
+          throw Error('query.excludes_some(field, values) :: Unexpected non-number / NaN / non-finite value');
         }
         break;
       }
       default: {
-        throw Error('excludes_some :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('query.excludes_some(field, values) :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
     queryFilters.push([13, field, values]);
@@ -545,38 +545,38 @@ const Query = {
   },
   excludes_all: (field, values) => {
     if (typeof field !== 'string') {
-      throw Error('excludes_all :: field :: Unexpected non-string');
+      throw Error('query.excludes_all(field, values) :: Unexpected non-string field');
     }
     if (queryItemSchema[field] === undefined) {
-      throw Error('excludes_all :: field :: Unexpected non-existing field');
+      throw Error('query.excludes_all(field, values) :: Unexpected non-existing field');
     }
     if (Array.isArray(values) === false) {
-      throw Error('excludes_all :: values :: Unexpected non-array values');
+      throw Error('query.excludes_all(field, values) :: Unexpected non-array values');
     }
     if (values.length === 0) {
-      throw Error('excludes_all :: values :: Unexpected empty-array values');
+      throw Error('query.excludes_all(field, values) :: Unexpected empty-array values');
     }
     switch (queryItemSchema[field]) {
       case 'booleans': {
         if (values.every((value) => typeof value === 'boolean') === false) {
-          throw Error('excludes_all :: values :: Unexpected non-boolean value');
+          throw Error('query.excludes_all(field, values) :: Unexpected non-boolean value');
         }
         break;
       }
       case 'strings': {
         if (values.every((value) => typeof value === 'string') === false) {
-          throw Error('excludes_all :: values :: Unexpected non-string value');
+          throw Error('query.excludes_all(field, values) :: Unexpected non-string value');
         }
         break;
       }
       case 'numbers': {
         if (values.every((value) => typeof value === 'number' && Number.isNaN(value) === false && Number.isFinite(value) === true) === false) {
-          throw Error('excludes_all :: values :: Unexpected non-number / NaN / non-finite value');
+          throw Error('query.excludes_all(field, values) :: Unexpected non-number / NaN / non-finite value');
         }
         break;
       }
       default: {
-        throw Error('excludes_all :: field :: Unexpected non-strings, non-numbers, and non-booleans field');
+        throw Error('query.excludes_all(field, values) :: Unexpected non-strings, non-numbers, and non-booleans field');
       }
     }
     queryFilters.push([14, field, values]);
@@ -586,63 +586,63 @@ const Query = {
   // PAGINATE:
   limit: (value) => {
     if (typeof value !== 'number') {
-      throw Error('limit :: value :: Unexpected non-number value');
+      throw Error('query.limit(value) :: Unexpected non-number value');
     }
     if (Number.isNaN(value) === true) {
-      throw Error('limit :: value :: Unexpected NaN value');
+      throw Error('query.limit(value) :: Unexpected NaN value');
     }
     if (Number.isFinite(value) === false) {
-      throw Error('limit :: value :: Unexpected non-finite value');
+      throw Error('query.limit(value) :: Unexpected non-finite value');
     }
     if (Math.floor(value) !== value) {
-      throw Error('limit :: value :: Unexpected non-integer value');
+      throw Error('query.limit(value) :: Unexpected non-integer value');
     }
     if (value <= 0) {
-      throw Error('limit :: value :: Unexpected less-than-zero value');
+      throw Error('query.limit(value) :: Unexpected less-than-zero value');
     }
     queryLimit = value;
     return Query;
   },
   offset: (value) => {
     if (typeof value !== 'number') {
-      throw Error('offset :: value :: Unexpected non-number value');
+      throw Error('query.offset(value) :: Unexpected non-number value');
     }
     if (Number.isNaN(value) === true) {
-      throw Error('offset :: value :: Unexpected NaN value');
+      throw Error('query.offset(value) :: Unexpected NaN value');
     }
     if (Number.isFinite(value) === false) {
-      throw Error('offset :: value :: Unexpected non-finite value');
+      throw Error('query.offset(value) :: Unexpected non-finite value');
     }
     if (Math.floor(value) !== value) {
-      throw Error('offset :: value :: Unexpected non-integer value');
+      throw Error('query.offset(value) :: Unexpected non-integer value');
     }
     if (value <= 0) {
-      throw Error('offset :: value :: Unexpected less-than-zero value');
+      throw Error('query.offset(value) :: Unexpected less-than-zero value');
     }
     if (queryPage !== 0) {
-      throw Error('offset :: cannot use offset() with page()');
+      throw Error('query.offset(value) :: cannot use offset() with page()');
     }
     queryOffset = value;
     return Query;
   },
   page: (value) => {
     if (typeof value !== 'number') {
-      throw Error('page :: value :: Unexpected non-number value');
+      throw Error('query.page(value) :: Unexpected non-number value');
     }
     if (Number.isNaN(value) === true) {
-      throw Error('page :: value :: Unexpected NaN value');
+      throw Error('query.page(value) :: Unexpected NaN value');
     }
     if (Number.isFinite(value) === false) {
-      throw Error('page :: value :: Unexpected non-finite value');
+      throw Error('query.page(value) :: Unexpected non-finite value');
     }
     if (Math.floor(value) !== value) {
-      throw Error('page :: value :: Unexpected non-integer value');
+      throw Error('query.page(value) :: Unexpected non-integer value');
     }
     if (value <= 0) {
-      throw Error('page :: value :: Unexpected less-than-zero value');
+      throw Error('query.page(value) :: Unexpected less-than-zero value');
     }
     if (queryOffset !== 0) {
-      throw Error('page :: cannot use page() with offset()');
+      throw Error('query.page(value) :: cannot use page() with offset()');
     }
     queryPage = value;
     return Query;
@@ -651,32 +651,32 @@ const Query = {
   // SELECT & DESELECT
   select: (fields) => {
     if (Array.isArray(fields) === false) {
-      throw Error('select :: fields :: unexpected non-array fields');
+      throw Error('query.select(fields) :: unexpected non-array fields');
     }
     if (fields.length === 0) {
-      throw Error('select :: fields :: unexpected empty-array fields');
+      throw Error('query.select(fields) :: unexpected empty-array fields');
     }
     if (fields.every((field) => typeof field === 'string') === false) {
-      throw Error('select :: fields :: unexpected non-string field');
+      throw Error('query.select(fields) :: unexpected non-string field');
     }
     if (fields.every((field) => queryItemSchema[field] !== undefined) === false) {
-      throw Error('select :: fields :: Unexpected non-existing field');
+      throw Error('query.select(fields) :: Unexpected non-existing field');
     }
     querySelects = fields;
     return Query;
   },
   deselect: (fields) => {
     if (Array.isArray(fields) === false) {
-      throw Error('deselect :: fields :: unexpected non-array fields');
+      throw Error('query.deselect(fields) :: unexpected non-array fields');
     }
     if (fields.length === 0) {
-      throw Error('deselect :: fields :: unexpected empty-array fields');
+      throw Error('query.deselect(fields) :: unexpected empty-array fields');
     }
     if (fields.every((field) => typeof field === 'string') === false) {
-      throw Error('deselect :: fields :: unexpected non-string field');
+      throw Error('query.deselect(fields) :: unexpected non-string field');
     }
     if (fields.every((field) => queryItemSchema[field] !== undefined) === false) {
-      throw Error('select :: fields :: Unexpected non-existing field');
+      throw Error('query.deselect(fields) :: Unexpected non-existing field');
     }
     querySelects = Object.keys(queryItemSchema).filter((field) => fields.includes(field) === false);
     return Query;
@@ -1060,10 +1060,15 @@ function Table(label, fields, itemSchema, transformFunction) {
 
   this.label = () => label;
 
-  this.id = () => {
-    let itemId = crypto.randomBytes(16).toString('hex');
+  this.id = (bits) => {
+    if (bits !== undefined) {
+      if (typeof bits !== 'number' || Number.isNaN(bits) === true || Number.isFinite(bits) === false || Math.floor(bits) !== bits) {
+        throw Error('table.id(bits) :: invalid value for bits');
+      }
+    }
+    let itemId = crypto.randomBytes(bits || 16).toString('hex');
     while (dictionary[itemId] !== undefined) {
-      itemId = crypto.randomBytes(16).toString('hex');
+      itemId = crypto.randomBytes(bits || 16).toString('hex');
     }
     return itemId;
   };
@@ -1080,10 +1085,10 @@ function Table(label, fields, itemSchema, transformFunction) {
     validateItem('add', fields, itemSchema, newItem);
     const { id } = newItem;
     if (typeof id !== 'string' || id === '') {
-      throw Error('table :: add :: unexpected non-string / empty string "id"');
+      throw Error('table.add(newItem) :: unexpected non-string / empty string "id"');
     }
     if (dictionary[id] !== undefined) {
-      throw Error(`table :: add :: unexpected existing id "${id}"`);
+      throw Error(`table.add(newItem) :: unexpected existing id "${id}"`);
     }
     const duplicateItem = copy(newItem);
     list.push(duplicateItem);
@@ -1096,10 +1101,10 @@ function Table(label, fields, itemSchema, transformFunction) {
     validateItem('update', fields, itemSchema, updatedItem);
     const { id } = updatedItem;
     if (typeof id !== 'string' || id === '') {
-      throw Error('table :: update :: unexpected non-string / empty string "id"');
+      throw Error('table.update(updatedItem) :: unexpected non-string / empty string "id"');
     }
     if (dictionary[id] === undefined) {
-      throw Error(`table :: update :: unexpected non-existing id "${id}"`);
+      throw Error(`table.update(updatedItem) :: unexpected non-existing id "${id}"`);
     }
     const existingItem = dictionary[id];
     const existingItemIndex = list.indexOf(existingItem);
@@ -1112,20 +1117,20 @@ function Table(label, fields, itemSchema, transformFunction) {
 
   this.get = (itemId) => {
     if (typeof itemId !== 'string') {
-      throw Error(`table :: get :: unexpected non-string id "${itemId}"`);
+      throw Error(`table.get(itemId) :: unexpected non-string id "${itemId}"`);
     }
     if (dictionary[itemId] === undefined) {
-      throw Error(`table :: get :: unexpected non-existing id "${itemId}"`);
+      throw Error(`table.get(itemId) :: unexpected non-existing id "${itemId}"`);
     }
     return dictionary[itemId];
   };
 
   this.delete = (itemId) => {
     if (typeof itemId !== 'string') {
-      throw Error('table :: delete :: unexpected non-string itemId');
+      throw Error('table.delete(itemId) :: unexpected non-string itemId');
     }
     if (dictionary[itemId] === undefined) {
-      throw Error(`table :: delete :: unexpected non-existing id "${itemId}"`);
+      throw Error(`table.delete(itemId) :: unexpected non-existing id "${itemId}"`);
     }
     list.splice(list.indexOf(dictionary[itemId]), 1);
     delete dictionary[itemId];
@@ -1135,16 +1140,16 @@ function Table(label, fields, itemSchema, transformFunction) {
 
   this.increment = (itemId, field) => {
     if (typeof itemId !== 'string') {
-      throw Error('table :: increment :: unexpected non-string itemId');
+      throw Error('table.increment(itemId, field) :: unexpected non-string itemId');
     }
     if (dictionary[itemId] === undefined) {
-      throw Error(`table :: increment :: unexpected non-existing id "${itemId}"`);
+      throw Error(`table.increment(itemId, field) :: unexpected non-existing id "${itemId}"`);
     }
     if (fields.includes(field) === false) {
-      throw Error(`table :: increment :: unexpected field "${field}"`);
+      throw Error(`table.increment(itemId, field) :: unexpected field "${field}"`);
     }
     if (itemSchema[field] !== 'number') {
-      throw Error(`table :: increment :: unexpected non-number field "${field}"`);
+      throw Error(`table.increment(itemId, field) :: unexpected non-number field "${field}"`);
     }
     const existingItem = dictionary[itemId];
     existingItem[field] += 1;
@@ -1154,16 +1159,16 @@ function Table(label, fields, itemSchema, transformFunction) {
 
   this.decrement = (itemId, field) => {
     if (typeof itemId !== 'string') {
-      throw Error('table :: decrement :: unexpected non-string itemId');
+      throw Error('table.decrement(itemId, field) :: unexpected non-string itemId');
     }
     if (dictionary[itemId] === undefined) {
-      throw Error(`table :: decrement :: unexpected non-existing id "${itemId}"`);
+      throw Error(`table.decrement(itemId, field) :: unexpected non-existing id "${itemId}"`);
     }
     if (fields.includes(field) === false) {
-      throw Error(`table :: decrement :: unexpected field "${field}"`);
+      throw Error(`table.decrement(itemId, field) :: unexpected field "${field}"`);
     }
     if (itemSchema[field] !== 'number') {
-      throw Error(`table :: decrement :: unexpected non-number field "${field}"`);
+      throw Error(`table.decrement(itemId, field) :: unexpected non-number field "${field}"`);
     }
     const existingItem = dictionary[itemId];
     existingItem[field] -= 1;
@@ -1173,7 +1178,7 @@ function Table(label, fields, itemSchema, transformFunction) {
 
   this.has = (itemId) => {
     if (typeof itemId !== 'string') {
-      throw Error(`table :: has :: unexpected non-string id "${itemId}"`);
+      throw Error(`table.has(itemId) :: unexpected non-string id "${itemId}"`);
     }
     return dictionary[itemId] !== undefined;
   };
@@ -1193,10 +1198,10 @@ function Table(label, fields, itemSchema, transformFunction) {
   this.size = () => list.length;
 }
 
-function Database(databaseOptions) {
+function Database(dbOptions) {
   // type checks
-  if (typeof databaseOptions !== 'object' || databaseOptions === null) {
-    throw Error('table :: databaseOptions :: unexpected non-object databaseOptions');
+  if (typeof dbOptions !== 'object' || dbOptions === null) {
+    throw Error('new Database(dbOptions) :: unexpected non-object dbOptions');
   }
 
   const {
@@ -1205,36 +1210,36 @@ function Database(databaseOptions) {
     asyncSaveMaxSkips,
     savePrettyJSON,
     saveCompressionAlgo,
-  } = databaseOptions;
+  } = dbOptions;
 
   // more type checks
   if (Array.isArray(tableConfigs) === false) {
-    throw Error('table :: tableConfigs :: unexpected non-array value');
+    throw Error('dbOptions.tableConfigs :: unexpected non-array value');
   }
   if (tableConfigs.every((tableConfig) => typeof tableConfig === 'object' && tableConfig !== null) === false) {
-    throw Error('table :: tableConfigs :: unexpected non-object value in array');
+    throw Error('dbOptions.tableConfigs :: unexpected non-object value in array');
   }
   if (asyncSaveCheckInterval !== undefined) {
     if (typeof asyncSaveCheckInterval !== 'number' || Number.isNaN(asyncSaveCheckInterval) === true || Number.isFinite(asyncSaveCheckInterval) === false || Math.floor(asyncSaveCheckInterval) !== asyncSaveCheckInterval) {
-      throw Error('table :: asyncSaveCheckInterval :: unexpected non-number / NaN / non-finite / non-integer value');
+      throw Error('dbOptions.asyncSaveCheckInterval :: unexpected non-number / NaN / non-finite / non-integer value');
     }
   }
   if (asyncSaveMaxSkips !== undefined) {
     if (typeof asyncSaveMaxSkips !== 'number' || Number.isNaN(asyncSaveMaxSkips) === true || Number.isFinite(asyncSaveMaxSkips) === false || Math.floor(asyncSaveMaxSkips) !== asyncSaveMaxSkips) {
-      throw Error('table :: asyncSaveMaxSkips :: unexpected non-number / NaN / non-finite / non-integer value');
+      throw Error('dbOptions.asyncSaveMaxSkips :: unexpected non-number / NaN / non-finite / non-integer value');
     }
   }
   if (savePrettyJSON !== undefined) {
     if (saveCompressionAlgo !== undefined) {
-      throw Error('table :: unexpected usage of savePrettyJSON & saveCompressionAlgo');
+      throw Error('dbOptions :: unexpected usage of savePrettyJSON & saveCompressionAlgo');
     }
     if (typeof savePrettyJSON !== 'boolean') {
-      throw Error('table :: savePrettyJSON :: unexpected non-boolean value');
+      throw Error('dbOptions.savePrettyJSON :: unexpected non-boolean value');
     }
   }
   if (saveCompressionAlgo !== undefined) {
     if (saveCompressionAlgo !== 'gzip' && saveCompressionAlgo !== 'brotli') {
-      throw Error('table :: saveCompressionAlgo :: unexpected non-"gzip" & non-"brotli" value');
+      throw Error('dbOptions.saveCompressionAlgo :: unexpected non-"gzip" & non-"brotli" value');
     }
   }
 
@@ -1247,10 +1252,15 @@ function Database(databaseOptions) {
   for (let i = 0, l = tableConfigs.length; i < l; i += 1) {
     const { label, itemSchema, transformFunction } = tableConfigs[i];
     if (typeof label !== 'string') {
-      throw Error('database :: tableConfig :: unexpected non-string label');
+      throw Error(`dbOptions.tableConfigs[${i}].label :: unexpected non-string value`);
     }
-    if (transformFunction !== undefined && typeof transformFunction !== 'function') {
-      throw Error('database :: tableConfig :: unexpected non-function');
+    if (dictionary[label] !== undefined) {
+      throw Error(`dbOptions.tableConfigs[${i}].label :: unexpected duplicate value`);
+    }
+    if (transformFunction !== undefined) {
+      if (typeof transformFunction !== 'function') {
+        throw Error(`dbOptions.tableConfigs[${i}].transformFunction :: unexpected non-function`);
+      }
     }
     const [fields, itemSchemaCopy] = validateSchema(itemSchema);
     const table = new Table(label, fields, itemSchemaCopy, transformFunction);
@@ -1260,10 +1270,10 @@ function Database(databaseOptions) {
 
   this.table = (label) => {
     if (typeof label !== 'string') {
-      throw Error('database :: table :: unexpected non-string label');
+      throw Error('database.table(label) :: unexpected non-string label');
     }
     if (dictionary[label] === undefined) {
-      throw Error(`database :: table :: unexpected non-existing table "${label}"`);
+      throw Error(`database.table(label) :: unexpected non-existing table "${label}"`);
     }
     return dictionary[label];
   };
@@ -1271,7 +1281,7 @@ function Database(databaseOptions) {
   let asyncSaveIsSaving = false;
   const zlibGzip = util.promisify(zlib.gzip);
   const zlibBrotliCompress = util.promisify(zlib.brotliCompress);
-  const internalSave = async () => {
+  const asyncSaveInternal = async () => {
     asyncSaveIsSaving = true;
     await Promise.all(list.map(async (table) => {
       if (table[internalModified] === true) {
@@ -1319,14 +1329,14 @@ function Database(databaseOptions) {
               asyncCurrentSaveSkips += 1;
             } else {
               asyncCurrentSaveSkips = 0;
-              await internalSave();
+              await asyncSaveInternal();
               if (asyncSaveQueued === false) {
                 clearInterval(asyncSaveInterval);
                 asyncSaveInterval = undefined;
               }
             }
           } else {
-            await internalSave();
+            await asyncSaveInternal();
             if (asyncSaveQueued === false) {
               clearInterval(asyncSaveInterval);
               asyncSaveInterval = undefined;
