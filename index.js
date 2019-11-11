@@ -1066,11 +1066,11 @@ function Table(label, fields, itemSchema, transformFunction) {
         throw Error('table.id(bits) :: invalid value for bits');
       }
     }
-    let itemId = crypto.randomBytes(bits || 16).toString('hex');
-    while (dictionary[itemId] !== undefined) {
-      itemId = crypto.randomBytes(bits || 16).toString('hex');
+    let id = crypto.randomBytes(bits || 16).toString('hex');
+    while (dictionary[id] !== undefined) {
+      id = crypto.randomBytes(bits || 16).toString('hex');
     }
-    return itemId;
+    return id;
   };
 
   this.clear = () => {
@@ -1079,6 +1079,43 @@ function Table(label, fields, itemSchema, transformFunction) {
     this[internalModified] = true;
     this[internalList] = list;
     return this;
+  };
+
+  this.defaults = (sourceItem) => {
+    if (typeof sourceItem !== 'object' || sourceItem === null) {
+      throw Error('table.defaults(sourceItem) :: unexpected non-object sourceItem');
+    }
+    const updatedItem = copy(sourceItem);
+    for (let i = 1, l = fields.length; i < l; i += 1) {
+      const field = fields[i];
+      if (updatedItem[field] === undefined) {
+        switch (itemSchema[field]) {
+          case 'boolean': {
+            updatedItem[field] = false;
+            break;
+          }
+          case 'string': {
+            updatedItem[field] = '';
+            break;
+          }
+          case 'number': {
+            updatedItem[field] = 0;
+            break;
+          }
+          case 'booleans':
+          case 'strings':
+          case 'numbers':
+          case 'coordinates': {
+            updatedItem[field] = [];
+            break;
+          }
+          default: {
+            throw Error(`table.defaults(item) :: unexpected field ${field}`);
+          }
+        }
+      }
+    }
+    return updatedItem;
   };
 
   this.add = (newItem) => {
@@ -1115,72 +1152,72 @@ function Table(label, fields, itemSchema, transformFunction) {
     return updatedItem;
   };
 
-  this.get = (itemId) => {
-    if (typeof itemId !== 'string') {
-      throw Error(`table.get(itemId) :: unexpected non-string id "${itemId}"`);
+  this.get = (id) => {
+    if (typeof id !== 'string') {
+      throw Error(`table.get(id) :: unexpected non-string id "${id}"`);
     }
-    if (dictionary[itemId] === undefined) {
-      throw Error(`table.get(itemId) :: unexpected non-existing id "${itemId}"`);
+    if (dictionary[id] === undefined) {
+      throw Error(`table.get(id) :: unexpected non-existing id "${id}"`);
     }
-    return dictionary[itemId];
+    return dictionary[id];
   };
 
-  this.delete = (itemId) => {
-    if (typeof itemId !== 'string') {
-      throw Error('table.delete(itemId) :: unexpected non-string itemId');
+  this.delete = (id) => {
+    if (typeof id !== 'string') {
+      throw Error('table.delete(id) :: unexpected non-string id');
     }
-    if (dictionary[itemId] === undefined) {
-      throw Error(`table.delete(itemId) :: unexpected non-existing id "${itemId}"`);
+    if (dictionary[id] === undefined) {
+      throw Error(`table.delete(id) :: unexpected non-existing id "${id}"`);
     }
-    list.splice(list.indexOf(dictionary[itemId]), 1);
-    delete dictionary[itemId];
+    list.splice(list.indexOf(dictionary[id]), 1);
+    delete dictionary[id];
     this[internalModified] = true;
     return this;
   };
 
-  this.increment = (itemId, field) => {
-    if (typeof itemId !== 'string') {
-      throw Error('table.increment(itemId, field) :: unexpected non-string itemId');
+  this.increment = (id, field) => {
+    if (typeof id !== 'string') {
+      throw Error('table.increment(id, field) :: unexpected non-string id');
     }
-    if (dictionary[itemId] === undefined) {
-      throw Error(`table.increment(itemId, field) :: unexpected non-existing id "${itemId}"`);
+    if (dictionary[id] === undefined) {
+      throw Error(`table.increment(id, field) :: unexpected non-existing id "${id}"`);
     }
     if (fields.includes(field) === false) {
-      throw Error(`table.increment(itemId, field) :: unexpected field "${field}"`);
+      throw Error(`table.increment(id, field) :: unexpected field "${field}"`);
     }
     if (itemSchema[field] !== 'number') {
-      throw Error(`table.increment(itemId, field) :: unexpected non-number field "${field}"`);
+      throw Error(`table.increment(id, field) :: unexpected non-number field "${field}"`);
     }
-    const existingItem = dictionary[itemId];
+    const existingItem = dictionary[id];
     existingItem[field] += 1;
     this[internalModified] = true;
     return this;
   };
 
-  this.decrement = (itemId, field) => {
-    if (typeof itemId !== 'string') {
-      throw Error('table.decrement(itemId, field) :: unexpected non-string itemId');
+  this.decrement = (id, field) => {
+    if (typeof id !== 'string') {
+      throw Error('table.decrement(id, field) :: unexpected non-string id');
     }
-    if (dictionary[itemId] === undefined) {
-      throw Error(`table.decrement(itemId, field) :: unexpected non-existing id "${itemId}"`);
+    if (dictionary[id] === undefined) {
+      throw Error(`table.decrement(id, field) :: unexpected non-existing id "${id}"`);
     }
     if (fields.includes(field) === false) {
-      throw Error(`table.decrement(itemId, field) :: unexpected field "${field}"`);
+      throw Error(`table.decrement(id, field) :: unexpected field "${field}"`);
     }
     if (itemSchema[field] !== 'number') {
-      throw Error(`table.decrement(itemId, field) :: unexpected non-number field "${field}"`);
+      throw Error(`table.decrement(id, field) :: unexpected non-number field "${field}"`);
     }
-    const existingItem = dictionary[itemId];
+    const existingItem = dictionary[id];
     existingItem[field] -= 1;
     this[internalModified] = true;
     return this;
   };
 
-  this.has = (itemId) => {
-    if (typeof itemId !== 'string') {
-      throw Error(`table.has(itemId) :: unexpected non-string id "${itemId}"`);
+  this.has = (id) => {
+    if (typeof id !== 'string') {
+      throw Error(`table.has(id) :: unexpected non-string id "${id}"`);
     }
-    return dictionary[itemId] !== undefined;
+    return dictionary[id] !== undefined;
   };
 
   this.query = () => {

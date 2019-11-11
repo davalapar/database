@@ -81,13 +81,14 @@ const users = db.table('users');
 - `table.label() -> string`
 - `table.id() -> string`
 - `table.clear() -> table`
+- `table.defaults(sourceItem) -> updatedItem`
 - `table.add(newItem) -> newItem`
 - `table.update(updatedItem) -> updatedItem`
-- `table.get(itemId) -> item`
-- `table.delete(itemId) -> table`
-- `table.increment(itemId, field) -> table`
-- `table.decrement(itemId, field) -> table`
-- `table.has(itemId) -> boolean`
+- `table.get(id) -> item`
+- `table.delete(id) -> table`
+- `table.increment(id, field) -> table`
+- `table.decrement(id, field) -> table`
+- `table.has(id) -> boolean`
 - `table.query() -> query`
 - `table.size() -> number`
 
