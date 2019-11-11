@@ -61,12 +61,12 @@ const db = new Database({
   - `savePrettyJSON`: optional boolean, prettifies output
   - `saveCompressionAlgo`: optional string, 'gzip' or 'brotli'
   - `asyncSaveCheckInterval`: optional integer, in milliseconds, defaults to `1000`
-  - `asyncSaveMaxSkips`: optional integer, defaults to `60`
+  - `asyncSaveMaxSkips`: optional integer, defaults to `30`
   - `tableConfigs`: array of `tableConfig`
 - `tableConfig`
   - `label`: label of table
-  - `itemSchema`: schema of table
-  - `transformFunction`: item transform function when you update `itemSchema`
+  - `itemSchema`: schema of items
+  - `transformFunction`: update function for items when `itemSchema` is updated
 - `new Database(dbOptions) -> database`
 - `database.table(label) -> table`
 - `database.asyncSave() -> undefined`

@@ -1362,7 +1362,7 @@ function Database(dbOptions) {
         if (asyncSaveIsSaving === false) {
           if (asyncSaveSkipNext === true) {
             asyncSaveSkipNext = false;
-            if (asyncCurrentSaveSkips < (asyncSaveMaxSkips || 60)) {
+            if (asyncCurrentSaveSkips < (asyncSaveMaxSkips || 30)) {
               asyncCurrentSaveSkips += 1;
             } else {
               asyncCurrentSaveSkips = 0;
