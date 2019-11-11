@@ -1055,6 +1055,7 @@ function Table(label, fields, itemSchema, transformFunction) {
         list[i] = transformedItem;
         dictionary[transformedItem.id] = transformedItem;
       }
+      this[internalModified] = true;
     }
   }
 
