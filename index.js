@@ -1028,14 +1028,14 @@ function Table(label, fields, itemSchema, transformFunction) {
     if (Array.isArray(data) === false) {
       throw Error('table :: load :: unexpected non-array "decoded" data.');
     }
-    const [loadedfieldsStringified, loadedList] = data;
-    if (typeof loadedfieldsStringified !== 'string') {
-      throw Error('table :: load :: unexpected non-string "loadedfieldsStringified" data.');
+    const [loadedFieldsStringified, loadedList] = data;
+    if (typeof loadedFieldsStringified !== 'string') {
+      throw Error('table :: load :: unexpected non-string "loadedFieldsStringified" data.');
     }
     if (Array.isArray(loadedList) === false) {
       throw Error('table :: load :: unexpected non-array "loadedList" data.');
     }
-    if (loadedfieldsStringified === itemFieldsStringified) {
+    if (loadedFieldsStringified === itemFieldsStringified) {
       list = loadedList;
       this[internalList] = list;
       for (let i = 0, l = loadedList.length; i < l; i += 1) {
