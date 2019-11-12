@@ -1365,7 +1365,7 @@ function Database(dbOptions) {
   let asyncSaveSkipNext = false;
   let asyncCurrentSaveSkips = 0;
   let asyncSaveQueued = false;
-  this.asyncSave = () => {
+  this.asyncSave = async () => {
     if (asyncSaveIsSaving === true) {
       asyncSaveQueued = true;
       return;
@@ -1375,7 +1375,7 @@ function Database(dbOptions) {
         if (asyncSaveIsSaving === false) {
           if (asyncSaveSkipNext === true) {
             asyncSaveSkipNext = false;
-            if (asyncCurrentSaveSkips < (asyncSaveMaxSkips || 30)) {
+            if (asyncCurrentSaveSkips < (asyncSaveMaxSkips || 0)) {
               asyncCurrentSaveSkips += 1;
             } else {
               asyncCurrentSaveSkips = 0;

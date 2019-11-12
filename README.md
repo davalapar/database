@@ -61,7 +61,7 @@ const db = new Database({
 
 - `dbOptions`
   - `asyncSaveCheckInterval`: optional integer, in milliseconds, defaults to `1000`
-  - `asyncSaveMaxSkips`: optional integer, defaults to `30`
+  - `asyncSaveMaxSkips`: optional integer, defaults to `0`
   - `savePrettyJSON`: optional boolean, prettifies output
   - `saveCompressionAlgo`: optional string, 'gzip' or 'brotli'
   - `saveGracefulInterrupt`: optional boolean, saves gracefully upon `SIGINT`
