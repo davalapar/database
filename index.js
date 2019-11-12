@@ -1248,6 +1248,8 @@ function Database(dbOptions) {
     asyncSaveMaxSkips,
     savePrettyJSON,
     saveCompressionAlgo,
+    saveGracefulInterrupt,
+    saveGracefulTerminate,
   } = dbOptions;
 
   // more type checks
@@ -1278,6 +1280,16 @@ function Database(dbOptions) {
   if (saveCompressionAlgo !== undefined) {
     if (saveCompressionAlgo !== 'gzip' && saveCompressionAlgo !== 'brotli') {
       throw Error('dbOptions.saveCompressionAlgo :: unexpected non-"gzip" & non-"brotli" value');
+    }
+  }
+  if (saveGracefulInterrupt !== undefined) {
+    if (typeof saveGracefulInterrupt !== 'boolean') {
+      throw Error('dbOptions.saveGracefulInterrupt :: unexpected non-boolean value');
+    }
+  }
+  if (saveGracefulTerminate !== undefined) {
+    if (typeof saveGracefulTerminate !== 'boolean') {
+      throw Error('dbOptions.saveGracefulTerminate :: unexpected non-boolean value');
     }
   }
 
@@ -1414,6 +1426,12 @@ function Database(dbOptions) {
       }
     }
   };
+  if (saveGracefulInterrupt === true) {
+    process.on('SIGINT', this.syncSave);
+  }
+  if (saveGracefulTerminate === true) {
+    process.on('SIGTERM', this.syncSave);
+  }
 }
 
 module.exports = Database;

@@ -34,6 +34,8 @@ const db = new Database({
   // saveCompressionAlgo: 'gzip' or 'brotli',
   asyncSaveCheckInterval: 100,
   asyncSaveMaxSkips: 2,
+  saveGracefulInterrupt: true,
+  saveGracefulTerminate: true,
   tableConfigs: [
     {
       label: 'users',
@@ -58,10 +60,12 @@ const db = new Database({
 ```
 
 - `dbOptions`
-  - `savePrettyJSON`: optional boolean, prettifies output
-  - `saveCompressionAlgo`: optional string, 'gzip' or 'brotli'
   - `asyncSaveCheckInterval`: optional integer, in milliseconds, defaults to `1000`
   - `asyncSaveMaxSkips`: optional integer, defaults to `30`
+  - `savePrettyJSON`: optional boolean, prettifies output
+  - `saveCompressionAlgo`: optional string, 'gzip' or 'brotli'
+  - `saveGracefulInterrupt`: optional boolean, saves gracefully upon `SIGINT`
+  - `saveGracefulTerminate`: optional boolean, saves gracefully upon `SIGTERM`
   - `tableConfigs`: array of `tableConfig`
 - `tableConfig`
   - `label`: label of table
