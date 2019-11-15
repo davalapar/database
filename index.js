@@ -1,10 +1,28 @@
 
+const os = require('os');
 const crypto = require('crypto');
 const fs = require('fs');
 const zlib = require('zlib');
 const util = require('util');
 const copy = require('./internals/copy');
 const haversine = require('./internals/haversine');
+
+const osPlatform = os.platform();
+
+let randomBytes;
+let randomBytesFd;
+
+if (osPlatform === 'linux' || osPlatform === 'darwin') {
+  randomBytesFd = fs.openSync('/dev/urandom');
+  randomBytes = (length) => {
+    const buffer = Buffer.allocUnsafe(length);
+    fs.readSync(randomBytesFd, buffer, 0, length, 0);
+    return buffer;
+  };
+} else {
+  randomBytes = crypto.randomBytes;
+}
+
 
 let queryItemSchema = {};
 let queryList = [];
@@ -1067,9 +1085,9 @@ function Table(label, fields, itemSchema, transformFunction) {
         throw Error('table.id(bits) :: invalid value for bits');
       }
     }
-    let id = crypto.randomBytes(bits || 16).toString('hex');
+    let id = randomBytes(bits || 32).toString('hex');
     while (dictionary[id] !== undefined) {
-      id = crypto.randomBytes(bits || 16).toString('hex');
+      id = randomBytes(bits || 32).toString('hex');
     }
     return id;
   };
@@ -1426,11 +1444,17 @@ function Database(dbOptions) {
       }
     }
   };
+  const gracefulExit = () => {
+    this.syncSave();
+    if (osPlatform === 'linux' || osPlatform === 'darwin') {
+      fs.closeSync(randomBytesFd);
+    }
+  };
   if (saveGracefulInterrupt === true) {
-    process.on('SIGINT', this.syncSave);
+    process.on('SIGINT', gracefulExit);
   }
   if (saveGracefulTerminate === true) {
-    process.on('SIGTERM', this.syncSave);
+    process.on('SIGTERM', gracefulExit);
   }
 }
 

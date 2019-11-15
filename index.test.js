@@ -38,7 +38,8 @@ beforeAll(() => {
 test('table: random id', () => {
   const users = db.table('users');
   expect(typeof users.id()).toBe('string');
-  expect(users.id().length).toBe(32);
+  expect(users.id().length).toBe(64);
+  expect(users.id(16).length).toBe(32);
 });
 
 test('table: add', () => {
