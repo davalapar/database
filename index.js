@@ -876,7 +876,7 @@ const internalCompressionPath = Symbol('internalCompressionPath');
 const internalOldPath = Symbol('internalOldPath');
 const internalTempPath = Symbol('internalTempPath');
 const internalCurrentPath = Symbol('internalCurrentPath');
-const internalItemFieldsStringified = Symbol('internalItemFieldsStringified');
+const internalSchemaHash = Symbol('internalSchemaHash');
 
 const validItemFieldTypes = [
   'boolean',
@@ -1009,8 +1009,8 @@ function Table(label, fields, itemSchema, transformFunction) {
   this[internalOldPath] = `./tables/${label}-old.tb`;
   this[internalTempPath] = `./tables/${label}-temp.tb`;
   this[internalCurrentPath] = `./tables/${label}-current.tb`;
-  const itemFieldsStringified = JSON.stringify(fields);
-  this[internalItemFieldsStringified] = itemFieldsStringified;
+  const schemaHash = crypto.createHash('sha512-256').update(JSON.stringify(itemSchema)).digest('hex');
+  this[internalSchemaHash] = schemaHash;
 
   let saveCompressionAlgo;
   if (fs.existsSync(this[internalCompressionPath]) === true) {
@@ -1028,14 +1028,14 @@ function Table(label, fields, itemSchema, transformFunction) {
     if (Array.isArray(data) === false) {
       throw Error('table :: load :: unexpected non-array "decoded" data.');
     }
-    const [loadedFieldsStringified, loadedList] = data;
-    if (typeof loadedFieldsStringified !== 'string') {
-      throw Error('table :: load :: unexpected non-string "loadedFieldsStringified" data.');
+    const [loadedSchemaHash, loadedList] = data;
+    if (typeof loadedSchemaHash !== 'string') {
+      throw Error('table :: load :: unexpected non-string "loadedSchemaHash" data.');
     }
     if (Array.isArray(loadedList) === false) {
       throw Error('table :: load :: unexpected non-array "loadedList" data.');
     }
-    if (loadedFieldsStringified === itemFieldsStringified) {
+    if (loadedSchemaHash === schemaHash) {
       list = loadedList;
       this[internalList] = list;
       for (let i = 0, l = loadedList.length; i < l; i += 1) {
@@ -1335,7 +1335,7 @@ function Database(dbOptions) {
     asyncSaveIsSaving = true;
     await Promise.all(list.map(async (table) => {
       if (table[internalModified] === true) {
-        let data = [table[internalItemFieldsStringified], table[internalList]];
+        let data = [table[internalSchemaHash], table[internalList]];
         table[internalModified] = false; // eslint-disable-line no-param-reassign
         if (savePrettyJSON === true) {
           data = JSON.stringify(data, null, 2);
@@ -1402,7 +1402,7 @@ function Database(dbOptions) {
     for (let i = 0, l = list.length; i < l; i += 1) {
       const table = list[i];
       if (table[internalModified] === true) {
-        let data = [table[internalItemFieldsStringified], table[internalList]];
+        let data = [table[internalSchemaHash], table[internalList]];
         table[internalModified] = false;
         if (savePrettyJSON === true) {
           data = JSON.stringify(data, null, 2);
