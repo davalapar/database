@@ -60,6 +60,7 @@ const db = new Database({
 ```
 
 - `dbOptions`
+  - `preferDevUrandom`: optional boolean, generates id's from `/dev/urandom` if possible
   - `asyncSaveCheckInterval`: optional integer, in milliseconds, defaults to `1000`
   - `asyncSaveMaxSkips`: optional integer, defaults to `0`
   - `savePrettyJSON`: optional boolean, prettifies output
@@ -83,7 +84,7 @@ const users = db.table('users');
 ```
 
 - `table.label() -> string`
-- `table.id() -> string`
+- `table.id(bytes?64) -> string`
 - `table.clear() -> table`
 - `table.defaults(sourceItem) -> updatedItem`
 - `table.add(newItem) -> newItem`

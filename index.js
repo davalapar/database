@@ -9,21 +9,6 @@ const haversine = require('./internals/haversine');
 
 const osPlatform = os.platform();
 
-let randomBytes;
-let randomBytesFd;
-
-if (osPlatform === 'linux' || osPlatform === 'darwin') {
-  randomBytesFd = fs.openSync('/dev/urandom');
-  randomBytes = (length) => {
-    const buffer = Buffer.allocUnsafe(length);
-    fs.readSync(randomBytesFd, buffer, 0, length, 0);
-    return buffer;
-  };
-} else {
-  randomBytes = crypto.randomBytes;
-}
-
-
 let queryItemSchema = {};
 let queryList = [];
 let queryFilters = [];
@@ -1017,7 +1002,7 @@ const validateSchema = (itemSchema) => {
 };
 
 
-function Table(label, fields, itemSchema, transformFunction) {
+function Table(label, fields, itemSchema, transformFunction, randomBytes) {
   let list = [];
   let dictionary = {};
   this[internalLabel] = label;
@@ -1079,15 +1064,15 @@ function Table(label, fields, itemSchema, transformFunction) {
 
   this.label = () => label;
 
-  this.id = (bits) => {
-    if (bits !== undefined) {
-      if (typeof bits !== 'number' || Number.isNaN(bits) === true || Number.isFinite(bits) === false || Math.floor(bits) !== bits) {
-        throw Error('table.id(bits) :: invalid value for bits');
+  this.id = (bytes) => {
+    if (bytes !== undefined) {
+      if (typeof bytes !== 'number' || Number.isNaN(bytes) === true || Number.isFinite(bytes) === false || Math.floor(bytes) !== bytes) {
+        throw Error('table.id(bytes) :: invalid value for bytes');
       }
     }
-    let id = randomBytes(bits || 32).toString('hex');
+    let id = randomBytes(bytes || 32).toString('hex');
     while (dictionary[id] !== undefined) {
-      id = randomBytes(bits || 32).toString('hex');
+      id = randomBytes(bytes || 32).toString('hex');
     }
     return id;
   };
@@ -1268,6 +1253,7 @@ function Database(dbOptions) {
     saveCompressionAlgo,
     saveGracefulInterrupt,
     saveGracefulTerminate,
+    preferDevUrandom,
   } = dbOptions;
 
   // more type checks
@@ -1310,6 +1296,30 @@ function Database(dbOptions) {
       throw Error('dbOptions.saveGracefulTerminate :: unexpected non-boolean value');
     }
   }
+  if (preferDevUrandom !== undefined) {
+    if (typeof preferDevUrandom !== 'boolean') {
+      throw Error('dbOptions.preferDevUrandom :: unexpected non-boolean value');
+    }
+  }
+
+  let randomBytes;
+  let randomBytesFd;
+
+  if (preferDevUrandom === true) {
+    if (osPlatform === 'linux' || osPlatform === 'darwin') {
+      randomBytesFd = fs.openSync('/dev/urandom');
+      randomBytes = (length) => {
+        const buffer = Buffer.allocUnsafe(length);
+        fs.readSync(randomBytesFd, buffer, 0, length, 0);
+        return buffer;
+      };
+    } else {
+      randomBytes = crypto.randomBytes;
+    }
+  } else {
+    randomBytes = crypto.randomBytes;
+  }
+
 
   if (fs.existsSync('./tables') === false) {
     fs.mkdirSync('./tables', { recursive: true });
@@ -1331,7 +1341,7 @@ function Database(dbOptions) {
       }
     }
     const [fields, itemSchemaCopy] = validateSchema(itemSchema);
-    const table = new Table(label, fields, itemSchemaCopy, transformFunction);
+    const table = new Table(label, fields, itemSchemaCopy, transformFunction, randomBytes);
     list[i] = table;
     dictionary[label] = table;
   }
@@ -1446,8 +1456,10 @@ function Database(dbOptions) {
   };
   const gracefulExit = () => {
     this.syncSave();
-    if (osPlatform === 'linux' || osPlatform === 'darwin') {
-      fs.closeSync(randomBytesFd);
+    if (preferDevUrandom === true) {
+      if (osPlatform === 'linux' || osPlatform === 'darwin') {
+        fs.closeSync(randomBytesFd);
+      }
     }
   };
   if (saveGracefulInterrupt === true) {
