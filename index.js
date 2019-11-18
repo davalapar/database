@@ -1494,12 +1494,31 @@ function Database(dbOptions) {
 }
 
 if (cluster.isMaster === true) {
-  // forward changes to worker threads
-  process.on('message', (message) => {});
+  // receive changes:
+  process.on('message', (message) => {
+    // check if message qualifies:
+    if (Array.isArray(message) === true && message[0] === 'db') {
+      // reflect changes locally
+      // ...
+      // save if necessary
+      // ...
+      // forward changes to worker threads
+      const keys = Object.keys(cluster.workers);
+      for (let i = 0, l = keys.length; i < l; i += 1) {
+        cluster.workers[keys[i]].send(message);
+      }
+    }
+  });
 }
 
 if (cluster.isWorker === true) {
-  // reflect changes to cloned tables
+  // receive changes:
+  process.on('message', (message) => {
+    // check if message qualifies:
+    if (Array.isArray(message) === true && message[0] === 'db') {
+      // reflect changes to cloned tables
+    }
+  });
 }
 
 module.exports = Database;
