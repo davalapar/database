@@ -1,9 +1,10 @@
 
 const os = require('os');
-const crypto = require('crypto');
 const fs = require('fs');
 const zlib = require('zlib');
 const util = require('util');
+const crypto = require('crypto');
+const cluster = require('cluster');
 const copy = require('./internals/copy');
 const haversine = require('./internals/haversine');
 
@@ -1001,7 +1002,6 @@ const validateSchema = (itemSchema) => {
   return [fields, itemSchemaCopy];
 };
 
-
 function Table(label, fields, itemSchema, transformFunction, randomBytes) {
   let list = [];
   let dictionary = {};
@@ -1082,6 +1082,9 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     dictionary = {};
     this[internalModified] = true;
     this[internalList] = list;
+    if (cluster.isWorker === true) {
+      // ...
+    }
     return this;
   };
 
@@ -1135,6 +1138,9 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     list.push(duplicateItem);
     dictionary[id] = duplicateItem;
     this[internalModified] = true;
+    if (cluster.isWorker === true) {
+      // ...
+    }
     return newItem;
   };
 
@@ -1153,6 +1159,9 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     list[existingItemIndex] = duplicateItem;
     dictionary[id] = duplicateItem;
     this[internalModified] = true;
+    if (cluster.isWorker === true) {
+      // ...
+    }
     return updatedItem;
   };
 
@@ -1195,8 +1204,12 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     const existingItem = dictionary[id];
     existingItem[field] += 1;
     this[internalModified] = true;
+    if (cluster.isWorker === true) {
+      // ...
+    }
     return this;
   };
+  this.incr = this.increment;
 
   this.decrement = (id, field) => {
     if (typeof id !== 'string') {
@@ -1214,8 +1227,12 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     const existingItem = dictionary[id];
     existingItem[field] -= 1;
     this[internalModified] = true;
+    if (cluster.isWorker === true) {
+      // ...
+    }
     return this;
   };
+  this.decr = this.decrement;
 
   this.has = (id) => {
     if (typeof id !== 'string') {
@@ -1468,6 +1485,21 @@ function Database(dbOptions) {
   if (saveGracefulTerminate === true) {
     process.on('SIGTERM', gracefulExit);
   }
+
+  if (cluster.isWorker === true) {
+    this.hydrate = async () => {
+
+    };
+  }
+}
+
+if (cluster.isMaster === true) {
+  // forward changes to worker threads
+  process.on('message', (message) => {});
+}
+
+if (cluster.isWorker === true) {
+  // reflect changes to cloned tables
 }
 
 module.exports = Database;

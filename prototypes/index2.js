@@ -10,7 +10,19 @@ function WorkerDatabase() {
 }
 
 if (cluster.isMaster === true) {
-  module.exports = { Database: MainDatabase };
+  const Database = MainDatabase;
+  module.exports = { Database };
+  const db = new Database();
 } else {
-  module.exports = { Database: WorkerDatabase };
+  const Database = WorkerDatabase;
+  module.exports = { Database };
+  const db = new Database();
 }
+(async () => {
+  const { Database } = module.exports;
+  if (cluster.isMaster === true) {
+    // main thread
+  } else {
+    // worker thread
+  }
+})();
