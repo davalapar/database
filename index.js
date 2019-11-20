@@ -1256,6 +1256,7 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
   this.size = () => list.length;
 }
 
+
 function Database(dbOptions) {
   // type checks
   if (typeof dbOptions !== 'object' || dbOptions === null) {
@@ -1493,12 +1494,50 @@ function Database(dbOptions) {
   }
 }
 
+/**
+ * message[0] = 'db';
+ * message[1] = 'add';
+ * message[2] = '';
+ * message[3] = '';
+ *
+ * table[internalAdd]
+ * table[internalUpdate]
+ * table[internalDelete]
+ * table[internalIncrement]
+ * table[internalDecrement]
+ *
+ */
+
 if (cluster.isMaster === true) {
   // receive changes:
   process.on('message', (message) => {
     // check if message qualifies:
     if (Array.isArray(message) === true && message[0] === 'db') {
       // reflect changes locally
+      switch (message[1]) {
+        case 0: { // add
+          const tableId = message[2];
+          break;
+        }
+        case 1: { // update
+          break;
+        }
+        case 2: { // delete
+          break;
+        }
+        case 3: { // increment
+          break;
+        }
+        case 4: { // decrement
+          break;
+        }
+        case 5: { // clear
+          break;
+        }
+        default: {
+          throw Error('Unexpected!');
+        }
+      }
       // ...
       // save if necessary
       // ...
@@ -1510,7 +1549,6 @@ if (cluster.isMaster === true) {
     }
   });
 }
-
 if (cluster.isWorker === true) {
   // receive changes:
   process.on('message', (message) => {
