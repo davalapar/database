@@ -1515,23 +1515,30 @@ if (cluster.isMaster === true) {
     if (Array.isArray(message) === true && message[0] === 'db') {
       // reflect changes locally
       switch (message[1]) {
-        case 0: { // add
-          const tableId = message[2];
+        case 0: { // table add
+          const tLabel = message[2];
+          const item = message[3];
           break;
         }
-        case 1: { // update
+        case 1: { // table update
           break;
         }
-        case 2: { // delete
+        case 2: { // table delete
           break;
         }
-        case 3: { // increment
+        case 3: { // table increment
           break;
         }
-        case 4: { // decrement
+        case 4: { // table decrement
           break;
         }
-        case 5: { // clear
+        case 5: { // table clear
+          break;
+        }
+        case 6: { // db async save
+          break;
+        }
+        case 7: { // db sync save
           break;
         }
         default: {
