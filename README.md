@@ -19,6 +19,7 @@ yarn add @davalapar/database
   - compression support
   - graceful interrupt support
   - graceful terminate support
+  - only saves modified tables
 - tables:
   - saved separately
   - item update helper function for schema updates

@@ -3,7 +3,6 @@ const os = require('os');
 const fs = require('fs');
 const zlib = require('zlib');
 const crypto = require('crypto');
-const cluster = require('cluster');
 const copy = require('./internals/copy');
 const haversine = require('./internals/haversine');
 
@@ -1081,9 +1080,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     dictionary = {};
     this[internalModified] = true;
     this[internalList] = list;
-    if (cluster.isWorker === true) {
-      // ...
-    }
     return this;
   };
   this.clr = this.clear;
@@ -1139,9 +1135,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     list.push(duplicateItem);
     dictionary[id] = duplicateItem;
     this[internalModified] = true;
-    if (cluster.isWorker === true) {
-      // ...
-    }
     return newItem;
   };
 
@@ -1160,9 +1153,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     list[existingItemIndex] = duplicateItem;
     dictionary[id] = duplicateItem;
     this[internalModified] = true;
-    if (cluster.isWorker === true) {
-      // ...
-    }
     return updatedItem;
   };
   this.upd = this.update;
@@ -1207,9 +1197,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     const existingItem = dictionary[id];
     existingItem[field] += 1;
     this[internalModified] = true;
-    if (cluster.isWorker === true) {
-      // ...
-    }
     return this;
   };
   this.incr = this.increment;
@@ -1230,9 +1217,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     const existingItem = dictionary[id];
     existingItem[field] -= 1;
     this[internalModified] = true;
-    if (cluster.isWorker === true) {
-      // ...
-    }
     return this;
   };
   this.decr = this.decrement;
@@ -1408,81 +1392,6 @@ function Database(dbOptions) {
   if (saveGracefulTerminate === true) {
     process.on('SIGTERM', gracefulExit);
   }
-
-  if (cluster.isWorker === true) {
-    this.hydrate = async () => {
-
-    };
-  }
-}
-
-/**
- * message[0] = 'db';
- * message[1] = 'add';
- * message[2] = '';
- * message[3] = '';
- *
- * table[internalAdd]
- * table[internalUpdate]
- * table[internalDelete]
- * table[internalIncrement]
- * table[internalDecrement]
- *
- */
-
-if (cluster.isMaster === true) {
-  // receive changes:
-  process.on('message', (message) => {
-    // check if message qualifies:
-    if (Array.isArray(message) === true && message[0] === 'db') {
-      // reflect changes locally
-      switch (message[1]) {
-        case 0: { // table add
-          const tLabel = message[2];
-          const item = message[3];
-          break;
-        }
-        case 1: { // table update
-          break;
-        }
-        case 2: { // table delete
-          break;
-        }
-        case 3: { // table increment
-          break;
-        }
-        case 4: { // table decrement
-          break;
-        }
-        case 5: { // table clear
-          break;
-        }
-        case 6: { // db sync save
-          break;
-        }
-        default: {
-          throw Error('Unexpected!');
-        }
-      }
-      // ...
-      // save if necessary
-      // ...
-      // forward changes to worker threads
-      const keys = Object.keys(cluster.workers);
-      for (let i = 0, l = keys.length; i < l; i += 1) {
-        cluster.workers[keys[i]].send(message);
-      }
-    }
-  });
-}
-if (cluster.isWorker === true) {
-  // receive changes:
-  process.on('message', (message) => {
-    // check if message qualifies:
-    if (Array.isArray(message) === true && message[0] === 'db') {
-      // reflect changes to cloned tables
-    }
-  });
 }
 
 module.exports = Database;
