@@ -6,8 +6,6 @@ const Database = require('./index');
 const db = new Database({
   // saveCompressionAlgo: 'gzip',
   // savePrettyJSON: true,
-  // asyncSaveCheckInterval: 100,
-  // asyncSaveMaxSkips: 2,
   preferDevUrandom: true,
   tableConfigs: [
     {
@@ -451,5 +449,5 @@ afterAll(() => {
   const places = db.table('places');
   users.clear();
   places.clear();
-  db.syncSave();
+  db.save();
 });

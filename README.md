@@ -1,8 +1,8 @@
 ## @davalapar/database
 
-fast, performant, persistent database.
+efficient, synchronous, prototyping database
 
-#### Installation
+#### installation
 
 ```sh
 yarn add @davalapar/database
@@ -10,18 +10,26 @@ yarn add @davalapar/database
 
 #### highlights
 
-- supported field types
+- supported field types:
   - string, number, boolean
   - strings, numbers, booleans
   - coordinates
-- items: 128-bit id randomization
-- items: forced explicit values
-- queries: filter stacking (by multiple comparison operators)
-- queries: sort stacking (by multiple columns / fields)
-- queries: geolocation sorting & filtering
-- database: asynchronous debounced saves
-- database: supports compression
-- database: tables are saved separately
+- database:
+  - pretty json support
+  - compression support
+  - graceful interrupt support
+  - graceful terminate support
+- tables:
+  - saved separately
+  - item update helper function for schema updates
+  - item id randomization helper (256-bit/64-bytes default)
+- table items:
+  - forced explicit property values by default
+  - optional implicit default values property values
+- table queries:
+  - filter stacking (by multiple comparison operators)
+  - sort stacking (by multiple columns / fields)
+  - geolocation sorting & filtering
 
 #### database
 
@@ -32,8 +40,6 @@ const Database = require('@davalapar/database');
 const db = new Database({
   // savePrettyJSON: true,
   // saveCompressionAlgo: 'gzip' or 'brotli',
-  asyncSaveCheckInterval: 100,
-  asyncSaveMaxSkips: 2,
   saveGracefulInterrupt: true,
   saveGracefulTerminate: true,
   tableConfigs: [
@@ -59,23 +65,20 @@ const db = new Database({
 });
 ```
 
-- `dbOptions`
-  - `preferDevUrandom`: optional boolean, generates id's from `/dev/urandom` if possible
-  - `asyncSaveCheckInterval`: optional integer, in milliseconds, defaults to `1000`
-  - `asyncSaveMaxSkips`: optional integer, defaults to `0`
-  - `savePrettyJSON`: optional boolean, prettifies output
-  - `saveCompressionAlgo`: optional string, 'gzip' or 'brotli'
-  - `saveGracefulInterrupt`: optional boolean, saves gracefully upon `SIGINT`
-  - `saveGracefulTerminate`: optional boolean, saves gracefully upon `SIGTERM`
-  - `tableConfigs`: array of `tableConfig`
-- `tableConfig`
-  - `label`: label of table
-  - `itemSchema`: schema of items
-  - `transformFunction`: update function for items when `itemSchema` is updated
+- `dbOptions` : Object
+  - `preferDevUrandom`: optional Boolean, generates id's from `/dev/urandom` if possible
+  - `savePrettyJSON`: optional Boolean, prettifies output
+  - `saveCompressionAlgo`: optional String, 'gzip' or 'brotli'
+  - `saveGracefulInterrupt`: optional Boolean, saves gracefully upon `SIGINT`
+  - `saveGracefulTerminate`: optional Boolean, saves gracefully upon `SIGTERM`
+  - `tableConfigs` : required Array of `tableConfig`
+- `tableConfig`: Object
+  - `label` : required String, label of table
+  - `itemSchema` : required Object, schema of items
+  - `transformFunction` : optional Function, updater for items when `itemSchema` is updated
 - `new Database(dbOptions) -> database`
 - `database.table(label) -> table`
-- `database.asyncSave() -> undefined`
-- `database.syncSave() -> undefined`
+- `database.save() -> undefined`
 
 #### table
 
@@ -84,18 +87,26 @@ const users = db.table('users');
 ```
 
 - `table.label() -> string`
-- `table.id(bytes?64) -> string`
+- `table.id(bytes) -> string`
 - `table.clear() -> table`
+- `table.clr() -> table` (alias for `table.clear()`)
 - `table.defaults(sourceItem) -> updatedItem`
+- `table.def(sourceItem) -> updatedItem` (alias for `table.defaults(sourceItem)`)
 - `table.add(newItem) -> newItem`
 - `table.update(updatedItem) -> updatedItem`
+- `table.upd(updatedItem) -> updatedItem` (alias for `table.update(updatedItem)`)
 - `table.get(id) -> item`
 - `table.delete(id) -> table`
+- `table.del(id) -> table` (alias for `table.delete(id)`)
 - `table.increment(id, field) -> table`
+- `table.incr(id, field) -> table` (alias for `table.increment(id, field)`)
 - `table.decrement(id, field) -> table`
+- `table.decr(id, field) -> table` (alias for `table.decrement(id, field)`)
 - `table.has(id) -> boolean`
 - `table.query() -> query`
 - `table.size() -> number`
+- `table.length() -> number` (alias for `table.size()`)
+- `table.len() -> number` (alias for `table.size()`)
 
 #### query
 

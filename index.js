@@ -2,7 +2,6 @@
 const os = require('os');
 const fs = require('fs');
 const zlib = require('zlib');
-const util = require('util');
 const crypto = require('crypto');
 const cluster = require('cluster');
 const copy = require('./internals/copy');
@@ -1087,6 +1086,7 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     }
     return this;
   };
+  this.clr = this.clear;
 
   this.defaults = (sourceItem) => {
     if (typeof sourceItem !== 'object' || sourceItem === null) {
@@ -1124,6 +1124,7 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     }
     return updatedItem;
   };
+  this.def = this.defaults;
 
   this.add = (newItem) => {
     validateItem('add', fields, itemSchema, newItem);
@@ -1164,6 +1165,7 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     }
     return updatedItem;
   };
+  this.upd = this.update;
 
   this.get = (id) => {
     if (typeof id !== 'string') {
@@ -1187,6 +1189,7 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     this[internalModified] = true;
     return this;
   };
+  this.del = this.delete;
 
   this.increment = (id, field) => {
     if (typeof id !== 'string') {
@@ -1254,6 +1257,8 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
   };
 
   this.size = () => list.length;
+  this.length = this.size;
+  this.len = this.size;
 }
 
 
@@ -1265,8 +1270,6 @@ function Database(dbOptions) {
 
   const {
     tableConfigs,
-    asyncSaveCheckInterval,
-    asyncSaveMaxSkips,
     savePrettyJSON,
     saveCompressionAlgo,
     saveGracefulInterrupt,
@@ -1280,16 +1283,6 @@ function Database(dbOptions) {
   }
   if (tableConfigs.every((tableConfig) => typeof tableConfig === 'object' && tableConfig !== null) === false) {
     throw Error('dbOptions.tableConfigs :: unexpected non-object value in array');
-  }
-  if (asyncSaveCheckInterval !== undefined) {
-    if (typeof asyncSaveCheckInterval !== 'number' || Number.isNaN(asyncSaveCheckInterval) === true || Number.isFinite(asyncSaveCheckInterval) === false || Math.floor(asyncSaveCheckInterval) !== asyncSaveCheckInterval) {
-      throw Error('dbOptions.asyncSaveCheckInterval :: unexpected non-number / NaN / non-finite / non-integer value');
-    }
-  }
-  if (asyncSaveMaxSkips !== undefined) {
-    if (typeof asyncSaveMaxSkips !== 'number' || Number.isNaN(asyncSaveMaxSkips) === true || Number.isFinite(asyncSaveMaxSkips) === false || Math.floor(asyncSaveMaxSkips) !== asyncSaveMaxSkips) {
-      throw Error('dbOptions.asyncSaveMaxSkips :: unexpected non-number / NaN / non-finite / non-integer value');
-    }
   }
   if (savePrettyJSON !== undefined) {
     if (saveCompressionAlgo !== undefined) {
@@ -1338,7 +1331,6 @@ function Database(dbOptions) {
     randomBytes = crypto.randomBytes;
   }
 
-
   if (fs.existsSync('./tables') === false) {
     fs.mkdirSync('./tables', { recursive: true });
   }
@@ -1374,77 +1366,7 @@ function Database(dbOptions) {
     return dictionary[label];
   };
 
-  let asyncSaveIsSaving = false;
-  const zlibGzip = util.promisify(zlib.gzip);
-  const zlibBrotliCompress = util.promisify(zlib.brotliCompress);
-  const asyncSaveInternal = async () => {
-    asyncSaveIsSaving = true;
-    await Promise.all(list.map(async (table) => {
-      if (table[internalModified] === true) {
-        let data = [table[internalSchemaHash], table[internalList]];
-        table[internalModified] = false; // eslint-disable-line no-param-reassign
-        if (savePrettyJSON === true) {
-          data = JSON.stringify(data, null, 2);
-        } else if (saveCompressionAlgo === 'gzip') {
-          data = await zlibGzip(JSON.stringify(data));
-        } else if (saveCompressionAlgo === 'brotli') {
-          data = await zlibBrotliCompress(JSON.stringify(data));
-        } else {
-          data = JSON.stringify(data);
-        }
-        if (saveCompressionAlgo !== undefined) {
-          await fs.promises.writeFile(table[internalCompressionPath], JSON.stringify(saveCompressionAlgo));
-        } else if (fs.existsSync(table[internalCompressionPath]) === true) {
-          await fs.promises.unlink(table[internalCompressionPath]);
-        }
-        await fs.promises.writeFile(table[internalTempPath], data);
-        if (fs.existsSync(table[internalCurrentPath]) === true) {
-          await fs.promises.rename(table[internalCurrentPath], table[internalOldPath]);
-        }
-        await fs.promises.writeFile(table[internalCurrentPath], data);
-      }
-    }));
-    asyncSaveIsSaving = false;
-  };
-
-  let asyncSaveInterval;
-  let asyncSaveSkipNext = false;
-  let asyncCurrentSaveSkips = 0;
-  let asyncSaveQueued = false;
-  this.asyncSave = async () => {
-    if (asyncSaveIsSaving === true) {
-      asyncSaveQueued = true;
-      return;
-    }
-    if (asyncSaveInterval === undefined) {
-      asyncSaveInterval = setInterval(async () => {
-        if (asyncSaveIsSaving === false) {
-          if (asyncSaveSkipNext === true) {
-            asyncSaveSkipNext = false;
-            if (asyncCurrentSaveSkips < (asyncSaveMaxSkips || 0)) {
-              asyncCurrentSaveSkips += 1;
-            } else {
-              asyncCurrentSaveSkips = 0;
-              await asyncSaveInternal();
-              if (asyncSaveQueued === false) {
-                clearInterval(asyncSaveInterval);
-                asyncSaveInterval = undefined;
-              }
-            }
-          } else {
-            await asyncSaveInternal();
-            if (asyncSaveQueued === false) {
-              clearInterval(asyncSaveInterval);
-              asyncSaveInterval = undefined;
-            }
-          }
-        }
-      }, (asyncSaveCheckInterval || 1000));
-    } else {
-      asyncSaveSkipNext = true;
-    }
-  };
-  this.syncSave = () => {
+  this.save = () => {
     for (let i = 0, l = list.length; i < l; i += 1) {
       const table = list[i];
       if (table[internalModified] === true) {
@@ -1473,7 +1395,7 @@ function Database(dbOptions) {
     }
   };
   const gracefulExit = () => {
-    this.syncSave();
+    this.save();
     if (preferDevUrandom === true) {
       if (osPlatform === 'linux' || osPlatform === 'darwin') {
         fs.closeSync(randomBytesFd);
@@ -1535,10 +1457,7 @@ if (cluster.isMaster === true) {
         case 5: { // table clear
           break;
         }
-        case 6: { // db async save
-          break;
-        }
-        case 7: { // db sync save
+        case 6: { // db sync save
           break;
         }
         default: {
