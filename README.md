@@ -140,6 +140,22 @@ const items = users.query().results();
 - `query.deselect(fields) -> query`
 - `query.results() -> items[]`
 
+#### query tricks
+
+```js
+// extracting first result:
+YourTable.query().results()[0];
+
+// extracting results count:
+YourTable.query().results().length;
+
+// extracting if results exist:
+YourTable.query().results().length < 0;
+
+// other array methods you can use:
+// filter, sort, map, reduce, forEach, some, every, find
+```
+
 #### License
 
 MIT | @davalapar
