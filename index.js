@@ -1082,7 +1082,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     this[internalList] = list;
     return this;
   };
-  this.clr = this.clear;
 
   this.defaults = (sourceItem) => {
     if (typeof sourceItem !== 'object' || sourceItem === null) {
@@ -1120,7 +1119,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     }
     return updatedItem;
   };
-  this.def = this.defaults;
 
   this.add = (newItem) => {
     validateItem('add', fields, itemSchema, newItem);
@@ -1155,7 +1153,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     this[internalModified] = true;
     return updatedItem;
   };
-  this.upd = this.update;
 
   this.get = (id) => {
     if (typeof id !== 'string') {
@@ -1179,7 +1176,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     this[internalModified] = true;
     return this;
   };
-  this.del = this.delete;
 
   this.increment = (id, field) => {
     if (typeof id !== 'string') {
@@ -1199,7 +1195,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     this[internalModified] = true;
     return this;
   };
-  this.incr = this.increment;
 
   this.decrement = (id, field) => {
     if (typeof id !== 'string') {
@@ -1219,7 +1214,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     this[internalModified] = true;
     return this;
   };
-  this.decr = this.decrement;
 
   this.has = (id) => {
     if (typeof id !== 'string') {
@@ -1241,8 +1235,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
   };
 
   this.size = () => list.length;
-  this.length = this.size;
-  this.len = this.size;
 }
 
 

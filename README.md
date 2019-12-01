@@ -90,24 +90,16 @@ const users = db.table('users');
 - `table.label() -> string`
 - `table.id(bytes) -> string`
 - `table.clear() -> table`
-- `table.clr() -> table` (alias for `table.clear()`)
 - `table.defaults(sourceItem) -> updatedItem`
-- `table.def(sourceItem) -> updatedItem` (alias for `table.defaults(sourceItem)`)
 - `table.add(newItem) -> newItem`
 - `table.update(updatedItem) -> updatedItem`
-- `table.upd(updatedItem) -> updatedItem` (alias for `table.update(updatedItem)`)
 - `table.get(id) -> item`
 - `table.delete(id) -> table`
-- `table.del(id) -> table` (alias for `table.delete(id)`)
 - `table.increment(id, field) -> table`
-- `table.incr(id, field) -> table` (alias for `table.increment(id, field)`)
 - `table.decrement(id, field) -> table`
-- `table.decr(id, field) -> table` (alias for `table.decrement(id, field)`)
 - `table.has(id) -> boolean`
 - `table.query() -> query`
 - `table.size() -> number`
-- `table.length() -> number` (alias for `table.size()`)
-- `table.len() -> number` (alias for `table.size()`)
 
 #### query
 
