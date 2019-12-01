@@ -871,14 +871,16 @@ const Query = {
   },
 };
 
+// Database Symbols
+const internalSaveCompressionAlgo = Symbol('internalSaveCompressionAlgo');
+const internalSavePrettyJSON = Symbol('internalSavePrettyJSON');
+const internalRandomBytes = Symbol('internalRandomBytes');
+
+// Table Symbols
 const internalLabel = Symbol('internalLabel');
 const internalModified = Symbol('internalModified');
-const internalList = Symbol('internalList');
-const internalCompressionPath = Symbol('internalCompressionPath');
-const internalOldPath = Symbol('internalOldPath');
-const internalTempPath = Symbol('internalTempPath');
-const internalCurrentPath = Symbol('internalCurrentPath');
-const internalSchemaHash = Symbol('internalSchemaHash');
+const internalReload = Symbol('internalReload');
+const internalSave = Symbol('internalSave');
 
 const validItemFieldTypes = [
   'boolean',
@@ -1000,26 +1002,26 @@ const validateSchema = (itemSchema) => {
   return [fields, itemSchemaCopy];
 };
 
-function Table(label, fields, itemSchema, transformFunction, randomBytes) {
+function Table(label, fields, itemSchema, transformFunction, db) {
   let list = [];
   let dictionary = {};
+
   this[internalLabel] = label;
   this[internalModified] = false;
-  this[internalList] = list;
-  this[internalCompressionPath] = `./tables/${label}-compression.tb`;
-  this[internalOldPath] = `./tables/${label}-old.tb`;
-  this[internalTempPath] = `./tables/${label}-temp.tb`;
-  this[internalCurrentPath] = `./tables/${label}-current.tb`;
+
+  const compressionPath = `./tables/${label}-compression.tb`;
+  const oldPath = `./tables/${label}-old.tb`;
+  const tempPath = `./tables/${label}-temp.tb`;
+  const currentPath = `./tables/${label}-current.tb`;
   const schemaHash = crypto.createHash('sha512-256').update(JSON.stringify(itemSchema)).digest('hex');
-  this[internalSchemaHash] = schemaHash;
 
   let saveCompressionAlgo;
-  if (fs.existsSync(this[internalCompressionPath]) === true) {
-    saveCompressionAlgo = JSON.parse(fs.readFileSync(this[internalCompressionPath]));
+  if (fs.existsSync(compressionPath) === true) {
+    saveCompressionAlgo = JSON.parse(fs.readFileSync(compressionPath));
   }
 
-  if (fs.existsSync(this[internalCurrentPath]) === true) {
-    let data = fs.readFileSync(this[internalCurrentPath]);
+  if (fs.existsSync(currentPath) === true) {
+    let data = fs.readFileSync(currentPath);
     if (saveCompressionAlgo === 'gzip') {
       data = zlib.gunzipSync(data);
     } else if (saveCompressionAlgo === 'brotli') {
@@ -1038,7 +1040,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     }
     if (loadedSchemaHash === schemaHash) {
       list = loadedList;
-      this[internalList] = list;
       for (let i = 0, l = loadedList.length; i < l; i += 1) {
         const item = loadedList[i];
         dictionary[item.id] = item;
@@ -1048,7 +1049,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
         throw Error('table :: load :: "transformFunction" is now required and must be a function.');
       }
       list = new Array(loadedList.length);
-      this[internalList] = list;
       for (let i = 0, l = loadedList.length; i < l; i += 1) {
         const item = loadedList[i];
         const transformedItem = transformFunction(item);
@@ -1060,17 +1060,69 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     }
   }
 
+  this[internalReload] = () => {
+    let data = fs.readFileSync(currentPath);
+    if (saveCompressionAlgo === 'gzip') {
+      data = zlib.gunzipSync(data);
+    } else if (saveCompressionAlgo === 'brotli') {
+      data = zlib.brotliDecompressSync(data);
+    }
+    data = JSON.parse(data);
+    const [loadedSchemaHash, loadedList] = data;
+    if (loadedSchemaHash !== schemaHash) {
+      throw Error('Unexpected this[internalReload] error : loadedSchemaHash !== schemaHash');
+    }
+    list = loadedList;
+    dictionary = {};
+    loadedList.forEach((item) => {
+      dictionary[item.id] = item;
+    });
+    this[internalModified] = false;
+  };
+
+  this[internalSave] = () => {
+    let data = [schemaHash, list];
+
+    if (db[internalSavePrettyJSON] === true) {
+      data = JSON.stringify(data, null, 2);
+    } else {
+      data = JSON.stringify(data);
+    }
+
+    if (db[internalSaveCompressionAlgo] === 'gzip') {
+      data = zlib.gzipSync(data);
+    } else if (db[internalSaveCompressionAlgo] === 'brotli') {
+      data = zlib.brotliCompressSync(data);
+    }
+
+    if (db[internalSaveCompressionAlgo] !== undefined) {
+      fs.writeFileSync(compressionPath, JSON.stringify(db[internalSaveCompressionAlgo]));
+    } else if (fs.existsSync(compressionPath) === true) {
+      fs.unlinkSync(compressionPath);
+    }
+
+    fs.writeFileSync(tempPath, data);
+    if (fs.existsSync(currentPath) === true) {
+      fs.renameSync(currentPath, oldPath);
+    }
+    fs.renameSync(tempPath, currentPath);
+
+    this[internalModified] = false;
+  };
+
   this.label = () => label;
 
-  this.id = (bytes) => {
-    if (bytes !== undefined) {
-      if (typeof bytes !== 'number' || Number.isNaN(bytes) === true || Number.isFinite(bytes) === false || Math.floor(bytes) !== bytes) {
-        throw Error('table.id(bytes) :: invalid value for bytes');
+  this.id = (bits) => {
+    let bytes = 32;
+    if (bits !== undefined) {
+      if (typeof bits !== 'number' || Number.isNaN(bits) === true || Number.isFinite(bits) === false || Math.floor(bits) !== bits || bits % 8 !== 0) {
+        throw Error('table.id(bits) :: invalid value for bits');
       }
+      bytes = bits / 8;
     }
-    let id = randomBytes(bytes || 32).toString('hex');
+    let id = db[internalRandomBytes](bytes).toString('hex');
     while (dictionary[id] !== undefined) {
-      id = randomBytes(bytes || 32).toString('hex');
+      id = db[internalRandomBytes](bytes).toString('hex');
     }
     return id;
   };
@@ -1079,7 +1131,6 @@ function Table(label, fields, itemSchema, transformFunction, randomBytes) {
     list = [];
     dictionary = {};
     this[internalModified] = true;
-    this[internalList] = list;
     return this;
   };
 
@@ -1289,6 +1340,9 @@ function Database(dbOptions) {
     }
   }
 
+  this[internalSaveCompressionAlgo] = saveCompressionAlgo;
+  this[internalSavePrettyJSON] = savePrettyJSON;
+
   let randomBytes;
   let randomBytesFd;
 
@@ -1306,6 +1360,8 @@ function Database(dbOptions) {
   } else {
     randomBytes = crypto.randomBytes;
   }
+
+  this[internalRandomBytes] = randomBytes;
 
   if (fs.existsSync('./tables') === false) {
     fs.mkdirSync('./tables', { recursive: true });
@@ -1327,7 +1383,7 @@ function Database(dbOptions) {
       }
     }
     const [fields, itemSchemaCopy] = validateSchema(itemSchema);
-    const table = new Table(label, fields, itemSchemaCopy, transformFunction, randomBytes);
+    const table = new Table(label, fields, itemSchemaCopy, transformFunction, this);
     list[i] = table;
     dictionary[label] = table;
   }
@@ -1342,36 +1398,16 @@ function Database(dbOptions) {
     return dictionary[label];
   };
 
-  this.save = () => {
-    for (let i = 0, l = list.length; i < l; i += 1) {
-      const table = list[i];
-      if (table[internalModified] === true) {
-        let data = [table[internalSchemaHash], table[internalList]];
-        table[internalModified] = false;
-        if (savePrettyJSON === true) {
-          data = JSON.stringify(data, null, 2);
-        } else if (saveCompressionAlgo === 'gzip') {
-          data = zlib.gzipSync(JSON.stringify(data));
-        } else if (saveCompressionAlgo === 'brotli') {
-          data = zlib.brotliCompressSync(JSON.stringify(data));
-        } else {
-          data = JSON.stringify(data);
-        }
-        if (saveCompressionAlgo !== undefined) {
-          fs.writeFileSync(table[internalCompressionPath], JSON.stringify(saveCompressionAlgo));
-        } else if (fs.existsSync(table[internalCompressionPath]) === true) {
-          fs.unlinkSync(table[internalCompressionPath]);
-        }
-        fs.writeFileSync(table[internalTempPath], data);
-        if (fs.existsSync(table[internalCurrentPath]) === true) {
-          fs.renameSync(table[internalCurrentPath], table[internalOldPath]);
-        }
-        fs.writeFileSync(table[internalCurrentPath], data);
-      }
-    }
-  };
+  this.rollback = () => list
+    .filter((table) => table[internalModified] === true)
+    .forEach((table) => table[internalReload]());
+
+  this.commit = () => list
+    .filter((table) => table[internalModified] === true)
+    .forEach((table) => table[internalSave]());
+
   const gracefulExit = () => {
-    this.save();
+    this.commit();
     if (preferDevUrandom === true) {
       if (osPlatform === 'linux' || osPlatform === 'darwin') {
         fs.closeSync(randomBytesFd);

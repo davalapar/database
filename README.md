@@ -2,12 +2,6 @@
 
 efficient, synchronous, prototyping database
 
-#### installation
-
-```sh
-yarn add @davalapar/database
-```
-
 #### highlights
 
 - supported field types:
@@ -23,7 +17,7 @@ yarn add @davalapar/database
 - tables:
   - saved separately
   - item update helper function for schema updates
-  - item id randomization helper (256-bit/64-bytes default)
+  - item id randomization helper (256-bit default)
 - table items:
   - forced explicit property values by default
   - optional implicit default values property values
@@ -31,6 +25,23 @@ yarn add @davalapar/database
   - filter stacking (by multiple comparison operators)
   - sort stacking (by multiple columns / fields)
   - geolocation sorting & filtering
+
+#### changelog
+
+- 1.1.0
+  - updated `table.id(bytes)` into `table.id(bits)` method
+  - renamed `database.save()` to `database.commit()`
+  - added `database.rollback()`
+- 1.0.0
+  - clean api
+  - fully synchronous
+  - stable release
+
+#### installation
+
+```sh
+yarn add @davalapar/database
+```
 
 #### database
 
@@ -66,6 +77,10 @@ const db = new Database({
 });
 ```
 
+- `new Database(dbOptions) -> database`
+- `database.table(label) -> table`
+- `database.rollback() -> undefined`
+- `database.commit() -> undefined`
 - `dbOptions` : Object
   - `preferDevUrandom`: optional Boolean, generates id's from `/dev/urandom` if possible
   - `savePrettyJSON`: optional Boolean, prettifies output
@@ -77,9 +92,6 @@ const db = new Database({
   - `label` : required String, label of table
   - `itemSchema` : required Object, schema of items
   - `transformFunction` : optional Function, updater for items when `itemSchema` is updated
-- `new Database(dbOptions) -> database`
-- `database.table(label) -> table`
-- `database.save() -> undefined`
 
 #### table
 
@@ -88,7 +100,7 @@ const users = db.table('users');
 ```
 
 - `table.label() -> string`
-- `table.id(bytes) -> string`
+- `table.id(bits=256) -> string`
 - `table.clear() -> table`
 - `table.defaults(sourceItem) -> updatedItem`
 - `table.add(newItem) -> newItem`
